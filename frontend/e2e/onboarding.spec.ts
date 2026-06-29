@@ -1,7 +1,7 @@
-import { expect, type Page, test } from '@playwright/test'
+import { expect, type APIRequestContext, test } from '@playwright/test'
 
-test('completes the onboarding flow to approval', async ({ page }) => {
-  await mockOnboardingApi(page, { score: 80, approved: true, finalStep: 'COMPLETED' })
+test('completes the onboarding flow to approval', async ({ page, request }) => {
+  await configureScenario(request, { email: 'ada@example.com', score: 80 })
 
   await page.goto('/')
   await page.getByLabel('Email address').fill('ada@example.com')
@@ -22,8 +22,8 @@ test('completes the onboarding flow to approval', async ({ page }) => {
   await expect(page.locator('.score')).toHaveText('80')
 })
 
-test('completes the onboarding flow to decline', async ({ page }) => {
-  await mockOnboardingApi(page, { score: 40, approved: false, finalStep: 'DECLINED' })
+test('completes the onboarding flow to decline', async ({ page, request }) => {
+  await configureScenario(request, { email: 'grace@example.com', score: 40 })
 
   await page.goto('/')
   await page.getByLabel('Email address').fill('grace@example.com')
@@ -42,60 +42,29 @@ test('completes the onboarding flow to decline', async ({ page }) => {
   await expect(page.locator('.score')).toHaveText('40')
 })
 
-test('shows an API validation error on the first step', async ({ page }) => {
-  await page.route('**/api/onboarding/start', async (route) => {
-    await route.fulfill({
-      status: 400,
-      contentType: 'application/json',
-      body: JSON.stringify({ error: 'email: must be a well-formed email address' }),
-    })
-  })
+test('shows a backend error when token verification fails', async ({ page, request }) => {
+  await configureScenario(request, { email: 'wrong-token@example.com', score: 80 })
 
   await page.goto('/')
-  await page.getByLabel('Email address').fill('broken@example.com')
+  await page.getByLabel('Email address').fill('wrong-token@example.com')
   await page.getByRole('button', { name: 'Continue' }).click()
 
-  await expect(page.getByText('email: must be a well-formed email address')).toBeVisible()
-  await expect(page).toHaveURL(/\/$/)
+  await page.getByLabel('Verification token').fill('000000')
+  await page.getByRole('button', { name: 'Verify' }).click()
+
+  await expect(page.getByText('Invalid verification token')).toBeVisible()
+  await expect(page).toHaveURL(/\/verify$/)
 })
 
-async function mockOnboardingApi(
-  page: Page,
-  result: { score: number; approved: boolean; finalStep: 'COMPLETED' | 'DECLINED' },
+async function configureScenario(
+  request: APIRequestContext,
+  scenario: { email: string; score: number; token?: string },
 ) {
-  await page.route('**/api/onboarding/start', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ applicationId: 'app-123', step: 'TOKEN_VERIFY' }),
-    })
+  const response = await request.post('http://127.0.0.1:18080/api/e2e/scenario', {
+    data: {
+      token: '123456',
+      ...scenario,
+    },
   })
-
-  await page.route('**/api/onboarding/app-123/verify-token', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ verified: true, step: 'FULFILLMENT' }),
-    })
-  })
-
-  await page.route('**/api/onboarding/app-123/fulfillment', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ step: 'SCORING' }),
-    })
-  })
-
-  await page.route('**/api/onboarding/app-123/score', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        score: result.score,
-        approved: result.approved,
-        step: result.finalStep,
-      }),
-    })
-  })
+  expect(response.ok()).toBeTruthy()
 }

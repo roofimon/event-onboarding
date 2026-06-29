@@ -5,16 +5,24 @@ export default defineConfig({
   fullyParallel: true,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://127.0.0.1:5173',
+    baseURL: 'http://127.0.0.1:15173',
     headless: true,
     trace: 'on-first-retry',
   },
-  webServer: {
-    command: 'npm run dev -- --host 127.0.0.1',
-    url: 'http://127.0.0.1:5173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: "cd .. && ./gradlew bootRun --args='--spring.profiles.active=e2e --server.address=127.0.0.1 --server.port=18080'",
+      url: 'http://127.0.0.1:18080/api/e2e/health',
+      reuseExistingServer: false,
+      timeout: 120_000,
+    },
+    {
+      command: 'E2E_API_PROXY_TARGET=http://127.0.0.1:18080 npm run dev -- --host 127.0.0.1 --port 15173',
+      url: 'http://127.0.0.1:15173',
+      reuseExistingServer: false,
+      timeout: 120_000,
+    },
+  ],
   projects: [
     {
       name: 'chromium',

@@ -77,8 +77,13 @@ npm install
 npm run dev          # http://localhost:5173
 npm run type-check   # vue-tsc --noEmit
 npm run build        # type-check + production build
+npm run e2e          # starts backend with the e2e profile + Vite, then runs Playwright headless
 ```
 
 The Vite dev server proxies `/api` to `http://localhost:8080`, so run the backend
 alongside it. Walk through the four steps in the browser — at step 2, copy the
 token from the backend console.
+
+The Playwright suite uses the backend's `e2e` Spring profile. That profile keeps
+production randomness unchanged, but exposes `/api/e2e/scenario` so tests can
+set a fixed token and credit score for success and decline cases.
