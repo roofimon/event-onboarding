@@ -1,10 +1,10 @@
 package com.example.eventonboarding.config
 
-import com.example.eventonboarding.application.port.inbound.OnboardingUseCase
-import com.example.eventonboarding.application.port.outbound.ApplicationRepository
-import com.example.eventonboarding.application.port.outbound.CreditScorer
-import com.example.eventonboarding.application.port.outbound.TokenGenerator
-import com.example.eventonboarding.application.port.outbound.VerificationNotifier
+import com.example.eventonboarding.ports.inbound.OnboardingUseCase
+import com.example.eventonboarding.ports.outbound.ApplicationRepository
+import com.example.eventonboarding.ports.outbound.CreditScorer
+import com.example.eventonboarding.ports.outbound.TokenGenerator
+import com.example.eventonboarding.ports.outbound.VerificationNotifier
 import com.example.eventonboarding.application.service.OnboardingService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

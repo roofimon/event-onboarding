@@ -1,4 +1,4 @@
-package com.example.eventonboarding.adapter.inbound.web.dto
+package com.example.eventonboarding.adapters.inbound.web.dto
 
 import com.example.eventonboarding.domain.OnboardingApplication
 import com.example.eventonboarding.domain.OnboardingStep

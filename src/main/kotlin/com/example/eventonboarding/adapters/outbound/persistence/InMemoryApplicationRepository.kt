@@ -1,6 +1,6 @@
-package com.example.eventonboarding.adapter.outbound.persistence
+package com.example.eventonboarding.adapters.outbound.persistence
 
-import com.example.eventonboarding.application.port.outbound.ApplicationRepository
+import com.example.eventonboarding.ports.outbound.ApplicationRepository
 import com.example.eventonboarding.domain.OnboardingApplication
 import org.springframework.stereotype.Repository
 import java.util.concurrent.ConcurrentHashMap

@@ -1,6 +1,6 @@
-package com.example.eventonboarding.adapter.outbound.token
+package com.example.eventonboarding.adapters.outbound.token
 
-import com.example.eventonboarding.application.port.outbound.TokenGenerator
+import com.example.eventonboarding.ports.outbound.TokenGenerator
 import org.springframework.stereotype.Component
 import kotlin.random.Random
 

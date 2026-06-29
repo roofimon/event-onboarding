@@ -1,6 +1,6 @@
-package com.example.eventonboarding.adapter.outbound.notification
+package com.example.eventonboarding.adapters.outbound.notification
 
-import com.example.eventonboarding.application.port.outbound.VerificationNotifier
+import com.example.eventonboarding.ports.outbound.VerificationNotifier
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 

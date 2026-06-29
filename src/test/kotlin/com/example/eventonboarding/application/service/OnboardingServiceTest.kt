@@ -1,6 +1,6 @@
 package com.example.eventonboarding.application.service
 
-import com.example.eventonboarding.application.port.outbound.ApplicationRepository
+import com.example.eventonboarding.ports.outbound.ApplicationRepository
 import com.example.eventonboarding.domain.ApplicationNotFoundException
 import com.example.eventonboarding.domain.InvalidStepException
 import com.example.eventonboarding.domain.OnboardingApplication

@@ -1,6 +1,6 @@
-package com.example.eventonboarding.adapter.outbound.scoring
+package com.example.eventonboarding.adapters.outbound.scoring
 
-import com.example.eventonboarding.application.port.outbound.CreditScorer
+import com.example.eventonboarding.ports.outbound.CreditScorer
 import com.example.eventonboarding.domain.OnboardingApplication
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

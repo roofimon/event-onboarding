@@ -24,11 +24,12 @@ The core is framework-free and depends only on ports; Spring lives at the edges.
 domain/                         pure entities & rules (OnboardingApplication, OnboardingStep,
                                 APPROVAL_THRESHOLD, exceptions) — no Spring
 application/
-  port/inbound/                 OnboardingUseCase           ← driving port
-  port/outbound/                ApplicationRepository, TokenGenerator,
-                                VerificationNotifier, CreditScorer   ← driven ports
   service/                      OnboardingService (implements the use case via ports)
-adapter/
+ports/
+  inbound/                      OnboardingUseCase           ← driving port
+  outbound/                     ApplicationRepository, TokenGenerator,
+                                VerificationNotifier, CreditScorer   ← driven ports
+adapters/
   inbound/web/                  OnboardingController, ExceptionHandler, DTOs, CORS
   outbound/persistence/         InMemoryApplicationRepository
   outbound/token/               RandomTokenGenerator
@@ -47,9 +48,13 @@ overriding the `TokenGenerator`/`CreditScorer` beans.
 ## Backend (port 8080)
 
 ```bash
+docker compose up -d rabbitmq
 ./gradlew test       # run unit + MockMvc tests
 ./gradlew bootRun    # start the API on http://localhost:8080
 ```
+
+RabbitMQ is available on `localhost:5672`; the management UI is available at
+`http://localhost:15672` with `guest` / `guest`.
 
 ### API
 

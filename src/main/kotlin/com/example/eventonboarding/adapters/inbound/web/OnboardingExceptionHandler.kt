@@ -1,6 +1,6 @@
-package com.example.eventonboarding.adapter.inbound.web
+package com.example.eventonboarding.adapters.inbound.web
 
-import com.example.eventonboarding.adapter.inbound.web.dto.ErrorResponse
+import com.example.eventonboarding.adapters.inbound.web.dto.ErrorResponse
 import com.example.eventonboarding.domain.ApplicationNotFoundException
 import com.example.eventonboarding.domain.InvalidStepException
 import org.springframework.http.HttpStatus

@@ -1,4 +1,4 @@
-package com.example.eventonboarding.adapter.inbound.web
+package com.example.eventonboarding.adapters.inbound.web
 
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.config.annotation.CorsRegistry

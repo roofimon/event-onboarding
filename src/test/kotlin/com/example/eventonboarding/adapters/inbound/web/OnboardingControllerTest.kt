@@ -1,7 +1,7 @@
-package com.example.eventonboarding.adapter.inbound.web
+package com.example.eventonboarding.adapters.inbound.web
 
-import com.example.eventonboarding.application.port.outbound.CreditScorer
-import com.example.eventonboarding.application.port.outbound.TokenGenerator
+import com.example.eventonboarding.ports.outbound.CreditScorer
+import com.example.eventonboarding.ports.outbound.TokenGenerator
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

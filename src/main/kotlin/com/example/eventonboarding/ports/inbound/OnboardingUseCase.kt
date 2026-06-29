@@ -1,4 +1,4 @@
-package com.example.eventonboarding.application.port.inbound
+package com.example.eventonboarding.ports.inbound
 
 import com.example.eventonboarding.domain.OnboardingApplication
 

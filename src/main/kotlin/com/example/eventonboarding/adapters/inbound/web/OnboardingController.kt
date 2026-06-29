@@ -1,14 +1,14 @@
-package com.example.eventonboarding.adapter.inbound.web
+package com.example.eventonboarding.adapters.inbound.web
 
-import com.example.eventonboarding.adapter.inbound.web.dto.ApplicationView
-import com.example.eventonboarding.adapter.inbound.web.dto.FulfillmentRequest
-import com.example.eventonboarding.adapter.inbound.web.dto.ScoreResponse
-import com.example.eventonboarding.adapter.inbound.web.dto.StartRequest
-import com.example.eventonboarding.adapter.inbound.web.dto.StartResponse
-import com.example.eventonboarding.adapter.inbound.web.dto.StepResponse
-import com.example.eventonboarding.adapter.inbound.web.dto.VerifyTokenRequest
-import com.example.eventonboarding.adapter.inbound.web.dto.VerifyTokenResponse
-import com.example.eventonboarding.application.port.inbound.OnboardingUseCase
+import com.example.eventonboarding.adapters.inbound.web.dto.ApplicationView
+import com.example.eventonboarding.adapters.inbound.web.dto.FulfillmentRequest
+import com.example.eventonboarding.adapters.inbound.web.dto.ScoreResponse
+import com.example.eventonboarding.adapters.inbound.web.dto.StartRequest
+import com.example.eventonboarding.adapters.inbound.web.dto.StartResponse
+import com.example.eventonboarding.adapters.inbound.web.dto.StepResponse
+import com.example.eventonboarding.adapters.inbound.web.dto.VerifyTokenRequest
+import com.example.eventonboarding.adapters.inbound.web.dto.VerifyTokenResponse
+import com.example.eventonboarding.ports.inbound.OnboardingUseCase
 import com.example.eventonboarding.domain.OnboardingStep
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping

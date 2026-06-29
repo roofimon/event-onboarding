@@ -1,4 +1,4 @@
-package com.example.eventonboarding.application.port.outbound
+package com.example.eventonboarding.ports.outbound
 
 /**
  * Driven (outbound) port that delivers a verification token to the user.
