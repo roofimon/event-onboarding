@@ -56,6 +56,11 @@ docker compose up -d rabbitmq
 RabbitMQ is available on `localhost:5672`; the management UI is available at
 `http://localhost:15672` with `guest` / `guest`.
 
+After credit scoring is calculated, the backend emits a
+`CreditScoringCalculatedEvent` through the outbound domain-event port. The
+RabbitMQ adapter publishes it to the `event-onboarding.domain-events` exchange
+with routing key `onboarding.credit-scoring.calculated`.
+
 ### API
 
 | Method & path | Body | Returns |

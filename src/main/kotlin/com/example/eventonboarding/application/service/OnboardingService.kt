@@ -3,12 +3,14 @@ package com.example.eventonboarding.application.service
 import com.example.eventonboarding.ports.inbound.OnboardingUseCase
 import com.example.eventonboarding.ports.outbound.ApplicationRepository
 import com.example.eventonboarding.ports.outbound.CreditScorer
+import com.example.eventonboarding.ports.outbound.DomainEventPublisher
 import com.example.eventonboarding.ports.outbound.TokenGenerator
 import com.example.eventonboarding.ports.outbound.VerificationNotifier
 import com.example.eventonboarding.domain.ApplicationNotFoundException
 import com.example.eventonboarding.domain.InvalidStepException
 import com.example.eventonboarding.domain.OnboardingApplication
 import com.example.eventonboarding.domain.OnboardingStep
+import com.example.eventonboarding.domain.event.CreditScoringCalculatedEvent
 import java.util.UUID
 
 /**
@@ -23,6 +25,7 @@ class OnboardingService(
     private val tokenGenerator: TokenGenerator,
     private val notifier: VerificationNotifier,
     private val creditScorer: CreditScorer,
+    private val domainEventPublisher: DomainEventPublisher,
 ) : OnboardingUseCase {
 
     override fun start(email: String): OnboardingApplication {
@@ -69,7 +72,17 @@ class OnboardingService(
             throw InvalidStepException("Fulfillment must be completed before scoring")
         }
         application.applyScore(creditScorer.score(application))
-        return repository.save(application)
+        val saved = repository.save(application)
+        domainEventPublisher.publish(
+            CreditScoringCalculatedEvent(
+                applicationId = saved.id,
+                email = saved.email,
+                score = saved.score!!,
+                approved = saved.step == OnboardingStep.COMPLETED,
+                step = saved.step,
+            ),
+        )
+        return saved
     }
 
     override fun get(id: String): OnboardingApplication =

@@ -3,6 +3,7 @@ package com.example.eventonboarding.config
 import com.example.eventonboarding.ports.inbound.OnboardingUseCase
 import com.example.eventonboarding.ports.outbound.ApplicationRepository
 import com.example.eventonboarding.ports.outbound.CreditScorer
+import com.example.eventonboarding.ports.outbound.DomainEventPublisher
 import com.example.eventonboarding.ports.outbound.TokenGenerator
 import com.example.eventonboarding.ports.outbound.VerificationNotifier
 import com.example.eventonboarding.application.service.OnboardingService
@@ -22,5 +23,6 @@ class BeanConfiguration {
         tokenGenerator: TokenGenerator,
         notifier: VerificationNotifier,
         creditScorer: CreditScorer,
-    ): OnboardingUseCase = OnboardingService(repository, tokenGenerator, notifier, creditScorer)
+        domainEventPublisher: DomainEventPublisher,
+    ): OnboardingUseCase = OnboardingService(repository, tokenGenerator, notifier, creditScorer, domainEventPublisher)
 }

@@ -5,10 +5,13 @@ import com.example.eventonboarding.domain.ApplicationNotFoundException
 import com.example.eventonboarding.domain.InvalidStepException
 import com.example.eventonboarding.domain.OnboardingApplication
 import com.example.eventonboarding.domain.OnboardingStep
+import com.example.eventonboarding.domain.event.CreditScoringCalculatedEvent
+import com.example.eventonboarding.domain.event.DomainEvent
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 /** In-memory test double for the persistence port. */
@@ -28,9 +31,23 @@ private class RecordingNotifier {
     }
 }
 
+/** Captures emitted domain events without involving adapters. */
+private class RecordingDomainEventPublisher {
+    val events = mutableListOf<DomainEvent>()
+    fun publish(event: DomainEvent) {
+        events += event
+    }
+}
+
 class OnboardingServiceTest {
 
     private val notifier = RecordingNotifier()
+    private val domainEventPublisher = RecordingDomainEventPublisher()
+
+    @BeforeEach
+    fun resetEvents() {
+        domainEventPublisher.events.clear()
+    }
 
     /** Service with the token and score outcomes pinned via port doubles. */
     private fun service(token: String = "000007", scoreValue: Int = 50) = OnboardingService(
@@ -38,6 +55,7 @@ class OnboardingServiceTest {
         tokenGenerator = { token },
         notifier = notifier::send,
         creditScorer = { scoreValue },
+        domainEventPublisher = domainEventPublisher::publish,
     )
 
     @Test
@@ -89,6 +107,12 @@ class OnboardingServiceTest {
         val scored = svc.score(app.id)
         assertEquals(41, scored.score)
         assertEquals(OnboardingStep.COMPLETED, scored.step)
+        val event = domainEventPublisher.events.single() as CreditScoringCalculatedEvent
+        assertEquals(app.id, event.applicationId)
+        assertEquals("user@example.com", event.email)
+        assertEquals(41, event.score)
+        assertTrue(event.approved)
+        assertEquals(OnboardingStep.COMPLETED, event.step)
     }
 
     @Test
@@ -101,6 +125,11 @@ class OnboardingServiceTest {
         val scored = svc.score(app.id)
         assertEquals(40, scored.score)
         assertEquals(OnboardingStep.DECLINED, scored.step)
+        val event = domainEventPublisher.events.single() as CreditScoringCalculatedEvent
+        assertEquals(app.id, event.applicationId)
+        assertEquals(40, event.score)
+        assertFalse(event.approved)
+        assertEquals(OnboardingStep.DECLINED, event.step)
     }
 
     @Test
