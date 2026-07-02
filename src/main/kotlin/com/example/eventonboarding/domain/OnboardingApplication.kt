@@ -17,6 +17,8 @@ data class OnboardingApplication(
     var tokenVerified: Boolean = false,
     var name: String? = null,
     var phone: String? = null,
+    var salary: Int? = null,
+    var yearsOfExperience: Int? = null,
     var score: Int? = null,
     var step: OnboardingStep = OnboardingStep.TOKEN_VERIFY,
 ) {

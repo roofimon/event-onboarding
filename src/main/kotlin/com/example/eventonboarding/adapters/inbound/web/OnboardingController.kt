@@ -47,7 +47,14 @@ class OnboardingController(
         @PathVariable id: String,
         @Valid @RequestBody request: FulfillmentRequest,
     ): StepResponse {
-        val app = onboarding.fulfill(id, request.name, request.email, request.phone)
+        val app = onboarding.fulfill(
+            id,
+            request.name,
+            request.email,
+            request.phone,
+            request.salary,
+            request.yearsOfExperience,
+        )
         return StepResponse(step = app.step)
     }
 

@@ -3,6 +3,7 @@ package com.example.eventonboarding.adapters.inbound.web.dto
 import com.example.eventonboarding.domain.OnboardingApplication
 import com.example.eventonboarding.domain.OnboardingStep
 import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 
@@ -22,6 +23,8 @@ data class FulfillmentRequest(
     @field:NotBlank
     @field:Pattern(regexp = "^\\+?[0-9 ()-]{7,20}$", message = "must be a valid phone number")
     val phone: String,
+    @field:Min(0) val salary: Int,
+    @field:Min(0) val yearsOfExperience: Int,
 )
 
 // ----- Responses -----
@@ -53,6 +56,8 @@ data class ApplicationView(
     val tokenVerified: Boolean,
     val name: String?,
     val phone: String?,
+    val salary: Int?,
+    val yearsOfExperience: Int?,
     val score: Int?,
     val step: OnboardingStep,
 ) {
@@ -63,6 +68,8 @@ data class ApplicationView(
             tokenVerified = app.tokenVerified,
             name = app.name,
             phone = app.phone,
+            salary = app.salary,
+            yearsOfExperience = app.yearsOfExperience,
             score = app.score,
             step = app.step,
         )

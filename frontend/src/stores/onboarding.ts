@@ -5,6 +5,8 @@ interface OnboardingState {
   email: string
   name: string
   phone: string
+  salary: number | null
+  yearsOfExperience: number | null
   score: number | null
   approved: boolean | null
   reset(): void
@@ -16,6 +18,8 @@ export const store = reactive<OnboardingState>({
   email: '',
   name: '',
   phone: '',
+  salary: null,
+  yearsOfExperience: null,
   score: null,
   approved: null,
 
@@ -24,6 +28,8 @@ export const store = reactive<OnboardingState>({
     this.email = ''
     this.name = ''
     this.phone = ''
+    this.salary = null
+    this.yearsOfExperience = null
     this.score = null
     this.approved = null
   },

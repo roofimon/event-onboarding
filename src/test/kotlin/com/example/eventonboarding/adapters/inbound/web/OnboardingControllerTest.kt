@@ -67,7 +67,9 @@ class OnboardingControllerTest {
         mockMvc.perform(
             post("/api/onboarding/$id/fulfillment")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""{"name":"Ada","email":"user@example.com","phone":"+1 555 0100"}"""),
+                .content(
+                    """{"name":"Ada","email":"user@example.com","phone":"+1 555 0100","salary":120000,"yearsOfExperience":7}""",
+                ),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.step").value("SCORING"))
@@ -83,6 +85,8 @@ class OnboardingControllerTest {
         mockMvc.perform(get("/api/onboarding/$id"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.token").doesNotExist())
+            .andExpect(jsonPath("$.salary").value(120000))
+            .andExpect(jsonPath("$.yearsOfExperience").value(7))
             .andExpect(jsonPath("$.score").value(80))
     }
 

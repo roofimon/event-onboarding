@@ -1,7 +1,5 @@
 package com.example.eventonboarding.config
 
-import com.example.eventonboarding.domain.OnboardingApplication
-import com.example.eventonboarding.ports.outbound.CreditScorer
 import com.example.eventonboarding.ports.outbound.TokenGenerator
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -12,8 +10,14 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.util.concurrent.ConcurrentHashMap
 
+/**
+ * E2E profile wiring. Pins the otherwise-random verification token to a known value so
+ * Playwright can drive the flow deterministically. The credit score is intentionally
+ * *not* overridden here — the real [com.example.eventonboarding.adapters.outbound.scoring.WeightedCreditScorer]
+ * runs, so e2e tests exercise the production scoring algorithm from the salary/experience
+ * they enter in the form.
+ */
 @Configuration
 @Profile("e2e")
 class E2eTestConfiguration {
@@ -25,12 +29,6 @@ class E2eTestConfiguration {
     fun e2eTokenGenerator(state: E2eScenarioState): TokenGenerator = TokenGenerator {
         state.token
     }
-
-    @Bean
-    @Primary
-    fun e2eCreditScorer(state: E2eScenarioState): CreditScorer = CreditScorer { application ->
-        state.scoreFor(application)
-    }
 }
 
 class E2eScenarioState {
@@ -38,25 +36,13 @@ class E2eScenarioState {
     var token: String = "123456"
         private set
 
-    private val scoresByEmail = ConcurrentHashMap<String, Int>()
-
     fun configure(request: E2eScenarioRequest) {
         token = request.token
-        scoresByEmail[request.email.trim()] = request.score
-    }
-
-    fun scoreFor(application: OnboardingApplication): Int =
-        scoresByEmail[application.email] ?: DEFAULT_SCORE
-
-    companion object {
-        private const val DEFAULT_SCORE = 80
     }
 }
 
 data class E2eScenarioRequest(
-    val email: String,
     val token: String = "123456",
-    val score: Int,
 )
 
 data class E2eHealthResponse(val status: String)

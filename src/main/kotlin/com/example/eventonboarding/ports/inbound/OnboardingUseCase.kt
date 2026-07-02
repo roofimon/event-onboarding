@@ -15,7 +15,14 @@ interface OnboardingUseCase {
     fun verifyToken(id: String, token: String): OnboardingApplication
 
     /** Step 3 — capture the applicant's details. */
-    fun fulfill(id: String, name: String, email: String, phone: String): OnboardingApplication
+    fun fulfill(
+        id: String,
+        name: String,
+        email: String,
+        phone: String,
+        salary: Int,
+        yearsOfExperience: Int,
+    ): OnboardingApplication
 
     /** Step 4 — run credit scoring and resolve the application. */
     fun score(id: String): OnboardingApplication

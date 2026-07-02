@@ -31,6 +31,16 @@ private class RecordingNotifier {
     }
 }
 
+/** Captures generated credentials without printing them during tests. */
+private class RecordingCredentialNotifier {
+    var lastUsername: String? = null
+    var lastPassword: String? = null
+    fun send(username: String, password: String) {
+        lastUsername = username
+        lastPassword = password
+    }
+}
+
 /** Captures emitted domain events without involving adapters. */
 private class RecordingDomainEventPublisher {
     val events = mutableListOf<DomainEvent>()
@@ -42,19 +52,24 @@ private class RecordingDomainEventPublisher {
 class OnboardingServiceTest {
 
     private val notifier = RecordingNotifier()
+    private val credentialNotifier = RecordingCredentialNotifier()
     private val domainEventPublisher = RecordingDomainEventPublisher()
 
     @BeforeEach
-    fun resetEvents() {
+    fun resetDoubles() {
+        credentialNotifier.lastUsername = null
+        credentialNotifier.lastPassword = null
         domainEventPublisher.events.clear()
     }
 
     /** Service with the token and score outcomes pinned via port doubles. */
-    private fun service(token: String = "000007", scoreValue: Int = 50) = OnboardingService(
+    private fun service(token: String = "000007", scoreValue: Int = 50, password: String = "passw0rd1234") = OnboardingService(
         repository = FakeRepository(),
         tokenGenerator = { token },
         notifier = notifier::send,
         creditScorer = { scoreValue },
+        passwordGenerator = { password },
+        credentialNotifier = credentialNotifier::send,
         domainEventPublisher = domainEventPublisher::publish,
     )
 
@@ -93,16 +108,29 @@ class OnboardingServiceTest {
         val app = svc.start("user@example.com")
 
         assertThrows(InvalidStepException::class.java) {
-            svc.fulfill(app.id, "Ada", "user@example.com", "+1 555 0100")
+            svc.fulfill(app.id, "Ada", "user@example.com", "+1 555 0100", 120000, 7)
         }
     }
 
     @Test
-    fun `score above threshold completes the application`() {
-        val svc = service(token = "000001", scoreValue = 41)
+    fun `fulfillment stores salary and years of experience`() {
+        val svc = service(token = "000001")
         val app = svc.start("user@example.com")
         svc.verifyToken(app.id, "000001")
-        svc.fulfill(app.id, "Ada", "user@example.com", "+1 555 0100")
+
+        val fulfilled = svc.fulfill(app.id, "Ada", "user@example.com", "+1 555 0100", 120000, 7)
+
+        assertEquals(120000, fulfilled.salary)
+        assertEquals(7, fulfilled.yearsOfExperience)
+        assertEquals(OnboardingStep.SCORING, fulfilled.step)
+    }
+
+    @Test
+    fun `score above threshold completes the application`() {
+        val svc = service(token = "000001", scoreValue = 41, password = "abc123ABC456")
+        val app = svc.start("user@example.com")
+        svc.verifyToken(app.id, "000001")
+        svc.fulfill(app.id, "Ada", "user@example.com", "+1 555 0100", 120000, 7)
 
         val scored = svc.score(app.id)
         assertEquals(41, scored.score)
@@ -113,6 +141,8 @@ class OnboardingServiceTest {
         assertEquals(41, event.score)
         assertTrue(event.approved)
         assertEquals(OnboardingStep.COMPLETED, event.step)
+        assertEquals("user@example.com", credentialNotifier.lastUsername)
+        assertEquals("abc123ABC456", credentialNotifier.lastPassword)
     }
 
     @Test
@@ -120,7 +150,7 @@ class OnboardingServiceTest {
         val svc = service(token = "000001", scoreValue = 40)
         val app = svc.start("user@example.com")
         svc.verifyToken(app.id, "000001")
-        svc.fulfill(app.id, "Ada", "user@example.com", "+1 555 0100")
+        svc.fulfill(app.id, "Ada", "user@example.com", "+1 555 0100", 120000, 7)
 
         val scored = svc.score(app.id)
         assertEquals(40, scored.score)

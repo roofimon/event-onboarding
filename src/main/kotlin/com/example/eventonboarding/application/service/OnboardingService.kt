@@ -2,8 +2,10 @@ package com.example.eventonboarding.application.service
 
 import com.example.eventonboarding.ports.inbound.OnboardingUseCase
 import com.example.eventonboarding.ports.outbound.ApplicationRepository
+import com.example.eventonboarding.ports.outbound.CredentialNotifier
 import com.example.eventonboarding.ports.outbound.CreditScorer
 import com.example.eventonboarding.ports.outbound.DomainEventPublisher
+import com.example.eventonboarding.ports.outbound.PasswordGenerator
 import com.example.eventonboarding.ports.outbound.TokenGenerator
 import com.example.eventonboarding.ports.outbound.VerificationNotifier
 import com.example.eventonboarding.domain.ApplicationNotFoundException
@@ -25,6 +27,8 @@ class OnboardingService(
     private val tokenGenerator: TokenGenerator,
     private val notifier: VerificationNotifier,
     private val creditScorer: CreditScorer,
+    private val passwordGenerator: PasswordGenerator,
+    private val credentialNotifier: CredentialNotifier,
     private val domainEventPublisher: DomainEventPublisher,
 ) : OnboardingUseCase {
 
@@ -51,7 +55,14 @@ class OnboardingService(
         return repository.save(application)
     }
 
-    override fun fulfill(id: String, name: String, email: String, phone: String): OnboardingApplication {
+    override fun fulfill(
+        id: String,
+        name: String,
+        email: String,
+        phone: String,
+        salary: Int,
+        yearsOfExperience: Int,
+    ): OnboardingApplication {
         val application = get(id)
         if (!application.tokenVerified) {
             throw InvalidStepException("Token must be verified before fulfillment")
@@ -59,6 +70,8 @@ class OnboardingService(
         application.name = name.trim()
         application.email = email.trim()
         application.phone = phone.trim()
+        application.salary = salary
+        application.yearsOfExperience = yearsOfExperience
         application.step = OnboardingStep.SCORING
         return repository.save(application)
     }
@@ -73,6 +86,7 @@ class OnboardingService(
         }
         application.applyScore(creditScorer.score(application))
         val saved = repository.save(application)
+        credentialNotifier.send(saved.email, passwordGenerator.generate())
         domainEventPublisher.publish(
             CreditScoringCalculatedEvent(
                 applicationId = saved.id,

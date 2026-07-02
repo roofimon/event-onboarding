@@ -1,7 +1,7 @@
 import { expect, type APIRequestContext, test } from '@playwright/test'
 
 test('completes the onboarding flow to approval', async ({ page, request }) => {
-  await configureScenario(request, { email: 'ada@example.com', score: 80 })
+  await configureScenario(request)
 
   await page.goto('/')
   await page.getByLabel('Email address').fill('ada@example.com')
@@ -15,15 +15,19 @@ test('completes the onboarding flow to approval', async ({ page, request }) => {
   await page.getByLabel('Full name').fill('Ada Lovelace')
   await page.getByLabel('Email address').fill('ada@example.com')
   await page.getByLabel('Phone number').fill('+1 555 0100')
+  // 120k over 7 years scores 55 via the weighted algorithm -> above the 40 threshold.
+  await page.getByLabel('Salary').fill('120000')
+  await expect(page.getByLabel('Salary')).toHaveValue('120,000')
+  await page.getByLabel('Years of experience').fill('7')
   await page.getByRole('button', { name: 'Submit & get result' }).click()
 
   await expect(page).toHaveURL(/\/welcome$/)
   await expect(page.getByRole('heading', { name: /welcome aboard, ada lovelace/i })).toBeVisible()
-  await expect(page.locator('.score')).toHaveText('80')
+  await expect(page.locator('.score')).toHaveText('55')
 })
 
 test('completes the onboarding flow to decline', async ({ page, request }) => {
-  await configureScenario(request, { email: 'grace@example.com', score: 40 })
+  await configureScenario(request)
 
   await page.goto('/')
   await page.getByLabel('Email address').fill('grace@example.com')
@@ -35,15 +39,18 @@ test('completes the onboarding flow to decline', async ({ page, request }) => {
   await page.getByLabel('Full name').fill('Grace Hopper')
   await page.getByLabel('Email address').fill('grace@example.com')
   await page.getByLabel('Phone number').fill('+1 555 0101')
+  // 35k over 2 years scores 22 via the weighted algorithm -> at or below the 40 threshold.
+  await page.getByLabel('Salary').fill('35000')
+  await page.getByLabel('Years of experience').fill('2')
   await page.getByRole('button', { name: 'Submit & get result' }).click()
 
   await expect(page).toHaveURL(/\/declined$/)
   await expect(page.getByRole('heading', { name: /application not approved/i })).toBeVisible()
-  await expect(page.locator('.score')).toHaveText('40')
+  await expect(page.locator('.score')).toHaveText('22')
 })
 
 test('shows a backend error when token verification fails', async ({ page, request }) => {
-  await configureScenario(request, { email: 'wrong-token@example.com', score: 80 })
+  await configureScenario(request)
 
   await page.goto('/')
   await page.getByLabel('Email address').fill('wrong-token@example.com')
@@ -56,15 +63,9 @@ test('shows a backend error when token verification fails', async ({ page, reque
   await expect(page).toHaveURL(/\/verify$/)
 })
 
-async function configureScenario(
-  request: APIRequestContext,
-  scenario: { email: string; score: number; token?: string },
-) {
+async function configureScenario(request: APIRequestContext) {
   const response = await request.post('http://127.0.0.1:18080/api/e2e/scenario', {
-    data: {
-      token: '123456',
-      ...scenario,
-    },
+    data: { token: '123456' },
   })
   expect(response.ok()).toBeTruthy()
 }

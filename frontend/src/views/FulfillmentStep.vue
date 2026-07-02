@@ -8,8 +8,22 @@ const router = useRouter()
 const name = ref(store.name)
 const email = ref(store.email)
 const phone = ref(store.phone)
+const salary = ref<number | null>(store.salary)
+const salaryInput = ref(formatSalary(store.salary))
+const yearsOfExperience = ref<number | null>(store.yearsOfExperience)
 const loading = ref(false)
 const error = ref('')
+
+function formatSalary(value: number | null): string {
+  return value === null ? '' : value.toLocaleString('en-US')
+}
+
+function onSalaryInput(event: Event) {
+  const input = event.target as HTMLInputElement
+  const digits = input.value.replace(/\D/g, '')
+  salary.value = digits ? Number(digits) : null
+  salaryInput.value = formatSalary(salary.value)
+}
 
 async function submit() {
   error.value = ''
@@ -20,10 +34,14 @@ async function submit() {
       name: name.value,
       email: email.value,
       phone: phone.value,
+      salary: salary.value ?? 0,
+      yearsOfExperience: yearsOfExperience.value ?? 0,
     })
     store.name = name.value
     store.email = email.value
     store.phone = phone.value
+    store.salary = salary.value
+    store.yearsOfExperience = yearsOfExperience.value
 
     // Step 4 runs immediately after fulfillment.
     const result = await score(id)
@@ -50,6 +68,28 @@ async function submit() {
 
     <label for="phone">Phone number</label>
     <input id="phone" v-model="phone" required placeholder="+1 555 0100" />
+
+    <label for="salary">Salary</label>
+    <input
+      id="salary"
+      :value="salaryInput"
+      type="text"
+      inputmode="numeric"
+      required
+      placeholder="120,000"
+      @input="onSalaryInput"
+    />
+
+    <label for="yearsOfExperience">Years of experience</label>
+    <input
+      id="yearsOfExperience"
+      v-model.number="yearsOfExperience"
+      type="number"
+      min="0"
+      step="1"
+      required
+      placeholder="7"
+    />
 
     <p v-if="error" class="error">{{ error }}</p>
     <button type="submit" :disabled="loading">

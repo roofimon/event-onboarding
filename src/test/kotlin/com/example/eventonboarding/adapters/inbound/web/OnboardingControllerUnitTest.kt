@@ -73,13 +73,15 @@ class OnboardingControllerUnitTest {
 
     @Test
     fun `fulfillment returns scoring step`() {
-        `when`(onboarding.fulfill("app-1", "Ada", "ada@example.com", "+1 555 0100")).thenReturn(
+        `when`(onboarding.fulfill("app-1", "Ada", "ada@example.com", "+1 555 0100", 120000, 7)).thenReturn(
             application(
                 id = "app-1",
                 email = "ada@example.com",
                 tokenVerified = true,
                 name = "Ada",
                 phone = "+1 555 0100",
+                salary = 120000,
+                yearsOfExperience = 7,
                 step = OnboardingStep.SCORING,
             ),
         )
@@ -87,12 +89,14 @@ class OnboardingControllerUnitTest {
         mockMvc.perform(
             post("/api/onboarding/app-1/fulfillment")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""{"name":"Ada","email":"ada@example.com","phone":"+1 555 0100"}"""),
+                .content(
+                    """{"name":"Ada","email":"ada@example.com","phone":"+1 555 0100","salary":120000,"yearsOfExperience":7}""",
+                ),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.step").value("SCORING"))
 
-        verify(onboarding).fulfill("app-1", "Ada", "ada@example.com", "+1 555 0100")
+        verify(onboarding).fulfill("app-1", "Ada", "ada@example.com", "+1 555 0100", 120000, 7)
     }
 
     @Test
@@ -119,6 +123,8 @@ class OnboardingControllerUnitTest {
                 tokenVerified = true,
                 name = "Ada",
                 phone = "+1 555 0100",
+                salary = 120000,
+                yearsOfExperience = 7,
                 score = 80,
                 step = OnboardingStep.COMPLETED,
             ),
@@ -132,6 +138,8 @@ class OnboardingControllerUnitTest {
             .andExpect(jsonPath("$.tokenVerified").value(true))
             .andExpect(jsonPath("$.name").value("Ada"))
             .andExpect(jsonPath("$.phone").value("+1 555 0100"))
+            .andExpect(jsonPath("$.salary").value(120000))
+            .andExpect(jsonPath("$.yearsOfExperience").value(7))
             .andExpect(jsonPath("$.score").value(80))
             .andExpect(jsonPath("$.step").value("COMPLETED"))
 
@@ -171,7 +179,7 @@ class OnboardingControllerUnitTest {
         mockMvc.perform(
             post("/api/onboarding/app-1/fulfillment")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""{"name":"","email":"not-an-email","phone":"x"}"""),
+                .content("""{"name":"","email":"not-an-email","phone":"x","salary":-1,"yearsOfExperience":-1}"""),
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").exists())
@@ -186,6 +194,8 @@ class OnboardingControllerUnitTest {
         tokenVerified: Boolean = false,
         name: String? = null,
         phone: String? = null,
+        salary: Int? = null,
+        yearsOfExperience: Int? = null,
         score: Int? = null,
         step: OnboardingStep = OnboardingStep.TOKEN_VERIFY,
     ) = OnboardingApplication(
@@ -195,6 +205,8 @@ class OnboardingControllerUnitTest {
         tokenVerified = tokenVerified,
         name = name,
         phone = phone,
+        salary = salary,
+        yearsOfExperience = yearsOfExperience,
         score = score,
         step = step,
     )
