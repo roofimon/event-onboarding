@@ -220,6 +220,49 @@ class OnboardingServiceTest {
     }
 
     @Test
+    fun `updateProfile changes details but leaves score and step untouched`() {
+        val svc = service(token = "000001", scoreValue = 80, password = "secretPass99")
+        val app = svc.start("user@example.com")
+        svc.verifyToken(app.id, "000001")
+        svc.fulfill(app.id, "Ada", "user@example.com", "+1 555 0100", 120000, 7)
+        svc.score(app.id)
+
+        val updated = svc.updateProfile(
+            "user@example.com", "secretPass99",
+            name = "Ada L.", phone = "+1 555 9999", salary = 150000, yearsOfExperience = 9,
+        )
+
+        assertEquals("Ada L.", updated.name)
+        assertEquals("+1 555 9999", updated.phone)
+        assertEquals(150000, updated.salary)
+        assertEquals(9, updated.yearsOfExperience)
+        // Score, step and credential are unchanged by an edit.
+        assertEquals(80, updated.score)
+        assertEquals(OnboardingStep.COMPLETED, updated.step)
+        assertEquals("hashed:secretPass99", updated.passwordHash)
+    }
+
+    @Test
+    fun `updateProfile rejects a wrong password`() {
+        val svc = service(token = "000001", scoreValue = 80, password = "secretPass99")
+        val app = svc.start("user@example.com")
+        svc.verifyToken(app.id, "000001")
+        svc.fulfill(app.id, "Ada", "user@example.com", "+1 555 0100", 120000, 7)
+        svc.score(app.id)
+
+        assertThrows(InvalidCredentialsException::class.java) {
+            svc.updateProfile(
+                "user@example.com", "wrong-password",
+                name = "Hacker", phone = "+1 555 0000", salary = 999999, yearsOfExperience = 40,
+            )
+        }
+        // The bad attempt did not mutate anything.
+        val current = svc.get(app.id)
+        assertEquals("Ada", current.name)
+        assertEquals(120000, current.salary)
+    }
+
+    @Test
     fun `declined applicants have no credentials and cannot log in`() {
         val svc = service(token = "000001", scoreValue = 40, password = "secretPass99")
         val app = svc.start("user@example.com")

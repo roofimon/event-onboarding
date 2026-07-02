@@ -32,6 +32,17 @@ data class FulfillmentRequest(
     @field:Min(0) val yearsOfExperience: Int,
 )
 
+data class UpdateProfileRequest(
+    @field:NotBlank @field:Email val email: String,
+    @field:NotBlank val password: String,
+    @field:NotBlank val name: String,
+    @field:NotBlank
+    @field:Pattern(regexp = "^\\+?[0-9 ()-]{7,20}$", message = "must be a valid phone number")
+    val phone: String,
+    @field:Min(0) val salary: Int,
+    @field:Min(0) val yearsOfExperience: Int,
+)
+
 // ----- Responses -----
 
 data class StartResponse(

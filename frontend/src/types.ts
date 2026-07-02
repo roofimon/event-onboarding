@@ -49,3 +49,13 @@ export interface Profile {
   salary: number
   yearsOfExperience: number
 }
+
+// Body for PUT /api/auth/profile — re-sends the password to authorize the edit.
+export interface UpdateProfilePayload {
+  email: string
+  password: string
+  name: string
+  phone: string
+  salary: number
+  yearsOfExperience: number
+}

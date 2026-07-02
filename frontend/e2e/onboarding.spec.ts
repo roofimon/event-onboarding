@@ -40,6 +40,47 @@ test('completes the onboarding flow to approval', async ({ page, request }) => {
   await expect(profile).toContainText('+1 555 0100')
   await expect(profile).toContainText('120,000')
   await expect(profile).toContainText('7')
+
+  // Edit the profile and save with the password.
+  await page.getByRole('button', { name: 'Edit profile' }).click()
+  await page.getByLabel('Phone number').fill('+1 555 9999')
+  await page.getByLabel('Salary').fill('150000')
+  await page.getByLabel('Confirm password').fill('e2e-password-123')
+  await page.getByRole('button', { name: 'Save changes' }).click()
+
+  await expect(profile).toContainText('+1 555 9999')
+  await expect(profile).toContainText('150,000')
+})
+
+test('rejects a profile edit with a wrong password', async ({ page, request }) => {
+  await configureScenario(request)
+
+  // Approve a fresh applicant, then log in.
+  await page.goto('/')
+  await page.getByLabel('Email address').fill('edith@example.com')
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.getByLabel('Verification token').fill('123456')
+  await page.getByRole('button', { name: 'Verify' }).click()
+  await page.getByLabel('Full name').fill('Edith Clarke')
+  await page.getByLabel('Email address').fill('edith@example.com')
+  await page.getByLabel('Phone number').fill('+1 555 0102')
+  await page.getByLabel('Salary').fill('120000')
+  await page.getByLabel('Years of experience').fill('7')
+  await page.getByRole('button', { name: 'Submit & get result' }).click()
+  await expect(page).toHaveURL(/\/welcome$/)
+
+  await page.getByRole('button', { name: 'Log in to your account' }).click()
+  await page.getByLabel('Email address').fill('edith@example.com')
+  await page.getByLabel('Password').fill('e2e-password-123')
+  await page.getByRole('button', { name: 'Log in' }).click()
+  await expect(page).toHaveURL(/\/profile$/)
+
+  await page.getByRole('button', { name: 'Edit profile' }).click()
+  await page.getByLabel('Phone number').fill('+1 555 1234')
+  await page.getByLabel('Confirm password').fill('wrong-password')
+  await page.getByRole('button', { name: 'Save changes' }).click()
+
+  await expect(page.getByText(/invalid email or password/i)).toBeVisible()
 })
 
 test('rejects login with a wrong password', async ({ page, request }) => {

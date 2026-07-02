@@ -123,4 +123,21 @@ class OnboardingService(
         }
         return application
     }
+
+    override fun updateProfile(
+        email: String,
+        password: String,
+        name: String,
+        phone: String,
+        salary: Int,
+        yearsOfExperience: Int,
+    ): OnboardingApplication {
+        // Re-verify credentials; leaves score, step and passwordHash untouched.
+        val application = login(email, password)
+        application.name = name.trim()
+        application.phone = phone.trim()
+        application.salary = salary
+        application.yearsOfExperience = yearsOfExperience
+        return repository.save(application)
+    }
 }

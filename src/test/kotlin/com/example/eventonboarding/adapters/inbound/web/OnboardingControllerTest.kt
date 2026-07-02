@@ -15,6 +15,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
@@ -122,6 +123,45 @@ class OnboardingControllerTest {
             .andExpect(jsonPath("$.yearsOfExperience").value(7))
 
         assert(id.isNotBlank())
+    }
+
+    @Test
+    fun `approved applicant edits their profile after confirming the password`() {
+        completeApprovedApplication("editor@example.com")
+
+        // Wrong password is rejected with 401 and changes nothing.
+        mockMvc.perform(
+            put("/api/auth/profile")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """{"email":"editor@example.com","password":"nope","name":"X","phone":"+1 555 0000","salary":1,"yearsOfExperience":1}""",
+                ),
+        )
+            .andExpect(status().isUnauthorized)
+
+        // Correct password applies the edit and returns the updated profile.
+        mockMvc.perform(
+            put("/api/auth/profile")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """{"email":"editor@example.com","password":"test-password-123","name":"Ada L.","phone":"+1 555 9999","salary":150000,"yearsOfExperience":9}""",
+                ),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.name").value("Ada L."))
+            .andExpect(jsonPath("$.phone").value("+1 555 9999"))
+            .andExpect(jsonPath("$.salary").value(150000))
+            .andExpect(jsonPath("$.yearsOfExperience").value(9))
+
+        // Re-login reflects the persisted change.
+        mockMvc.perform(
+            post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""{"email":"editor@example.com","password":"test-password-123"}"""),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.name").value("Ada L."))
+            .andExpect(jsonPath("$.salary").value(150000))
     }
 
     /** Drive an application all the way to approval; returns its id. */

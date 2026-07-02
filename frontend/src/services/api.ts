@@ -5,6 +5,7 @@ import type {
   ScoreResponse,
   StartResponse,
   StepResponse,
+  UpdateProfilePayload,
   VerifyTokenResponse,
 } from '../types'
 
@@ -30,6 +31,10 @@ export function score(id: string): Promise<ScoreResponse> {
 
 export function login(email: string, password: string): Promise<Profile> {
   return authHttp.post<Profile>('/login', { email, password }).then((r) => r.data)
+}
+
+export function updateProfile(payload: UpdateProfilePayload): Promise<Profile> {
+  return authHttp.put<Profile>('/profile', payload).then((r) => r.data)
 }
 
 /** Pull a human-readable message out of an axios error. */

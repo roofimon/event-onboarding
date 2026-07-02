@@ -35,4 +35,18 @@ interface OnboardingUseCase {
      * @throws com.example.eventonboarding.domain.InvalidCredentialsException on any mismatch.
      */
     fun login(email: String, password: String): OnboardingApplication
+
+    /**
+     * Update an approved applicant's profile details after re-verifying their password.
+     * Does not re-score or change the approval outcome.
+     * @throws com.example.eventonboarding.domain.InvalidCredentialsException on any mismatch.
+     */
+    fun updateProfile(
+        email: String,
+        password: String,
+        name: String,
+        phone: String,
+        salary: Int,
+        yearsOfExperience: Int,
+    ): OnboardingApplication
 }
