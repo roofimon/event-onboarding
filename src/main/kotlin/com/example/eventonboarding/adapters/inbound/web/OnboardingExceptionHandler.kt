@@ -2,6 +2,7 @@ package com.example.eventonboarding.adapters.inbound.web
 
 import com.example.eventonboarding.adapters.inbound.web.dto.ErrorResponse
 import com.example.eventonboarding.domain.ApplicationNotFoundException
+import com.example.eventonboarding.domain.InvalidCredentialsException
 import com.example.eventonboarding.domain.InvalidStepException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -9,7 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
-@RestControllerAdvice(assignableTypes = [OnboardingController::class])
+@RestControllerAdvice(assignableTypes = [OnboardingController::class, AuthController::class])
 class OnboardingExceptionHandler {
 
     @ExceptionHandler(ApplicationNotFoundException::class)
@@ -19,6 +20,10 @@ class OnboardingExceptionHandler {
     @ExceptionHandler(InvalidStepException::class)
     fun handleInvalidStep(ex: InvalidStepException): ResponseEntity<ErrorResponse> =
         ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse(ex.message ?: "Invalid step"))
+
+    @ExceptionHandler(InvalidCredentialsException::class)
+    fun handleInvalidCredentials(ex: InvalidCredentialsException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorResponse(ex.message ?: "Unauthorized"))
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidation(ex: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {

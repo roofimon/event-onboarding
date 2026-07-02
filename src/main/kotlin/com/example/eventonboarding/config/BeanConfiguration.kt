@@ -6,6 +6,7 @@ import com.example.eventonboarding.ports.outbound.CredentialNotifier
 import com.example.eventonboarding.ports.outbound.CreditScorer
 import com.example.eventonboarding.ports.outbound.DomainEventPublisher
 import com.example.eventonboarding.ports.outbound.PasswordGenerator
+import com.example.eventonboarding.ports.outbound.PasswordHasher
 import com.example.eventonboarding.ports.outbound.TokenGenerator
 import com.example.eventonboarding.ports.outbound.VerificationNotifier
 import com.example.eventonboarding.application.service.OnboardingService
@@ -26,6 +27,7 @@ class BeanConfiguration {
         notifier: VerificationNotifier,
         creditScorer: CreditScorer,
         passwordGenerator: PasswordGenerator,
+        passwordHasher: PasswordHasher,
         credentialNotifier: CredentialNotifier,
         domainEventPublisher: DomainEventPublisher,
     ): OnboardingUseCase = OnboardingService(
@@ -34,6 +36,7 @@ class BeanConfiguration {
         notifier,
         creditScorer,
         passwordGenerator,
+        passwordHasher,
         credentialNotifier,
         domainEventPublisher,
     )

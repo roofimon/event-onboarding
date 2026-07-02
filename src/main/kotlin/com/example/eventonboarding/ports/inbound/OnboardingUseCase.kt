@@ -29,4 +29,10 @@ interface OnboardingUseCase {
 
     /** Read the current state of an application. */
     fun get(id: String): OnboardingApplication
+
+    /**
+     * Authenticate an approved applicant with the credentials issued on approval.
+     * @throws com.example.eventonboarding.domain.InvalidCredentialsException on any mismatch.
+     */
+    fun login(email: String, password: String): OnboardingApplication
 }

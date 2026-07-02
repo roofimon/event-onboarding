@@ -1,4 +1,5 @@
 import { reactive } from 'vue'
+import type { Profile } from '../types'
 
 interface OnboardingState {
   applicationId: string | null
@@ -9,7 +10,9 @@ interface OnboardingState {
   yearsOfExperience: number | null
   score: number | null
   approved: boolean | null
+  profile: Profile | null
   reset(): void
+  logout(): void
 }
 
 // Lightweight shared state for the wizard — no Pinia needed for this scope.
@@ -22,6 +25,7 @@ export const store = reactive<OnboardingState>({
   yearsOfExperience: null,
   score: null,
   approved: null,
+  profile: null,
 
   reset() {
     this.applicationId = null
@@ -32,5 +36,10 @@ export const store = reactive<OnboardingState>({
     this.yearsOfExperience = null
     this.score = null
     this.approved = null
+    this.profile = null
+  },
+
+  logout() {
+    this.profile = null
   },
 })

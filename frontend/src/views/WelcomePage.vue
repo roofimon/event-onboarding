@@ -8,6 +8,10 @@ function restart() {
   store.reset()
   router.push({ name: 'email' })
 }
+
+function goToLogin() {
+  router.push({ name: 'login' })
+}
 </script>
 
 <template>
@@ -16,6 +20,7 @@ function restart() {
     <p class="hint">Your application has been approved.</p>
     <div class="score">{{ store.score }}</div>
     <p class="hint">Credit score (approval requires &gt; 40)</p>
+    <button type="button" @click="goToLogin">Log in to your account</button>
     <button class="link-button" @click="restart">Start a new application</button>
   </div>
 </template>

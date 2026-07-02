@@ -6,4 +6,5 @@ import com.example.eventonboarding.domain.OnboardingApplication
 interface ApplicationRepository {
     fun save(application: OnboardingApplication): OnboardingApplication
     fun findById(id: String): OnboardingApplication?
+    fun findByEmail(email: String): OnboardingApplication?
 }

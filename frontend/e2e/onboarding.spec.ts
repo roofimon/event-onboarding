@@ -24,6 +24,34 @@ test('completes the onboarding flow to approval', async ({ page, request }) => {
   await expect(page).toHaveURL(/\/welcome$/)
   await expect(page.getByRole('heading', { name: /welcome aboard, ada lovelace/i })).toBeVisible()
   await expect(page.locator('.score')).toHaveText('55')
+
+  // Log in with the credentials issued on approval and view the profile.
+  await page.getByRole('button', { name: 'Log in to your account' }).click()
+  await expect(page).toHaveURL(/\/login$/)
+  await page.getByLabel('Email address').fill('ada@example.com')
+  await page.getByLabel('Password').fill('e2e-password-123')
+  await page.getByRole('button', { name: 'Log in' }).click()
+
+  await expect(page).toHaveURL(/\/profile$/)
+  await expect(page.getByRole('heading', { name: /your profile/i })).toBeVisible()
+  const profile = page.locator('.profile')
+  await expect(profile).toContainText('Ada Lovelace')
+  await expect(profile).toContainText('ada@example.com')
+  await expect(profile).toContainText('+1 555 0100')
+  await expect(profile).toContainText('120,000')
+  await expect(profile).toContainText('7')
+})
+
+test('rejects login with a wrong password', async ({ page, request }) => {
+  await configureScenario(request)
+
+  await page.goto('/login')
+  await page.getByLabel('Email address').fill('ada@example.com')
+  await page.getByLabel('Password').fill('wrong-password')
+  await page.getByRole('button', { name: 'Log in' }).click()
+
+  await expect(page.getByText(/invalid email or password/i)).toBeVisible()
+  await expect(page).toHaveURL(/\/login$/)
 })
 
 test('completes the onboarding flow to decline', async ({ page, request }) => {

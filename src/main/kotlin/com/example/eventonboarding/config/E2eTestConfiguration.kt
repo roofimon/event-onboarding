@@ -1,5 +1,6 @@
 package com.example.eventonboarding.config
 
+import com.example.eventonboarding.ports.outbound.PasswordGenerator
 import com.example.eventonboarding.ports.outbound.TokenGenerator
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -28,6 +29,15 @@ class E2eTestConfiguration {
     @Primary
     fun e2eTokenGenerator(state: E2eScenarioState): TokenGenerator = TokenGenerator {
         state.token
+    }
+
+    /** Fixed password so e2e tests can log in as an approved applicant. */
+    @Bean
+    @Primary
+    fun e2ePasswordGenerator(): PasswordGenerator = PasswordGenerator { E2E_PASSWORD }
+
+    companion object {
+        const val E2E_PASSWORD = "e2e-password-123"
     }
 }
 

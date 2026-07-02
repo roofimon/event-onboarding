@@ -35,3 +35,17 @@ export interface FulfillmentPayload {
   salary: number
   yearsOfExperience: number
 }
+
+export interface LoginPayload {
+  email: string
+  password: string
+}
+
+// Profile returned by POST /api/auth/login.
+export interface Profile {
+  name: string
+  email: string
+  phone: string
+  salary: number
+  yearsOfExperience: number
+}

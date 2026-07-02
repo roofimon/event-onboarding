@@ -20,6 +20,7 @@ data class OnboardingApplication(
     var salary: Int? = null,
     var yearsOfExperience: Int? = null,
     var score: Int? = null,
+    var passwordHash: String? = null,
     var step: OnboardingStep = OnboardingStep.TOKEN_VERIFY,
 ) {
     /** Record a credit score and resolve the application against the threshold. */

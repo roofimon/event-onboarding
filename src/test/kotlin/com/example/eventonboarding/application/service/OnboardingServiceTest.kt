@@ -1,7 +1,9 @@
 package com.example.eventonboarding.application.service
 
 import com.example.eventonboarding.ports.outbound.ApplicationRepository
+import com.example.eventonboarding.ports.outbound.PasswordHasher
 import com.example.eventonboarding.domain.ApplicationNotFoundException
+import com.example.eventonboarding.domain.InvalidCredentialsException
 import com.example.eventonboarding.domain.InvalidStepException
 import com.example.eventonboarding.domain.OnboardingApplication
 import com.example.eventonboarding.domain.OnboardingStep
@@ -19,6 +21,13 @@ private class FakeRepository : ApplicationRepository {
     private val store = mutableMapOf<String, OnboardingApplication>()
     override fun save(application: OnboardingApplication) = application.also { store[it.id] = it }
     override fun findById(id: String) = store[id]
+    override fun findByEmail(email: String) = store.values.firstOrNull { it.email == email }
+}
+
+/** Deterministic hasher double — reversible marker instead of real BCrypt. */
+private class FakeHasher : PasswordHasher {
+    override fun hash(raw: String) = "hashed:$raw"
+    override fun matches(raw: String, hash: String) = hash == "hashed:$raw"
 }
 
 /** Captures the last token delivered, so tests can assert on it. */
@@ -69,6 +78,7 @@ class OnboardingServiceTest {
         notifier = notifier::send,
         creditScorer = { scoreValue },
         passwordGenerator = { password },
+        passwordHasher = FakeHasher(),
         credentialNotifier = credentialNotifier::send,
         domainEventPublisher = domainEventPublisher::publish,
     )
@@ -174,5 +184,54 @@ class OnboardingServiceTest {
     @Test
     fun `unknown id throws not found`() {
         assertThrows(ApplicationNotFoundException::class.java) { service().get("nope") }
+    }
+
+    @Test
+    fun `login returns the profile for valid credentials of an approved applicant`() {
+        val svc = service(token = "000001", scoreValue = 80, password = "secretPass99")
+        val app = svc.start("user@example.com")
+        svc.verifyToken(app.id, "000001")
+        svc.fulfill(app.id, "Ada", "user@example.com", "+1 555 0100", 120000, 7)
+        svc.score(app.id)
+
+        val loggedIn = svc.login("user@example.com", "secretPass99")
+        assertEquals(app.id, loggedIn.id)
+        assertEquals("Ada", loggedIn.name)
+    }
+
+    @Test
+    fun `login rejects a wrong password`() {
+        val svc = service(token = "000001", scoreValue = 80, password = "secretPass99")
+        val app = svc.start("user@example.com")
+        svc.verifyToken(app.id, "000001")
+        svc.fulfill(app.id, "Ada", "user@example.com", "+1 555 0100", 120000, 7)
+        svc.score(app.id)
+
+        assertThrows(InvalidCredentialsException::class.java) {
+            svc.login("user@example.com", "wrong-password")
+        }
+    }
+
+    @Test
+    fun `login rejects an unknown email`() {
+        assertThrows(InvalidCredentialsException::class.java) {
+            service().login("nobody@example.com", "whatever")
+        }
+    }
+
+    @Test
+    fun `declined applicants have no credentials and cannot log in`() {
+        val svc = service(token = "000001", scoreValue = 40, password = "secretPass99")
+        val app = svc.start("user@example.com")
+        svc.verifyToken(app.id, "000001")
+        svc.fulfill(app.id, "Ada", "user@example.com", "+1 555 0100", 120000, 7)
+        val scored = svc.score(app.id)
+
+        assertEquals(OnboardingStep.DECLINED, scored.step)
+        assertEquals(null, scored.passwordHash)
+        assertEquals(null, credentialNotifier.lastPassword)
+        assertThrows(InvalidCredentialsException::class.java) {
+            svc.login("user@example.com", "secretPass99")
+        }
     }
 }

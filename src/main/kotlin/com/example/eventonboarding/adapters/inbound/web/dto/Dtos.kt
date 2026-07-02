@@ -17,6 +17,11 @@ data class VerifyTokenRequest(
     @field:NotBlank val token: String,
 )
 
+data class LoginRequest(
+    @field:NotBlank @field:Email val email: String,
+    @field:NotBlank val password: String,
+)
+
 data class FulfillmentRequest(
     @field:NotBlank val name: String,
     @field:NotBlank @field:Email val email: String,
@@ -48,6 +53,26 @@ data class ScoreResponse(
     val approved: Boolean,
     val step: OnboardingStep,
 )
+
+/** Profile returned after a successful login — the details captured at fulfillment. */
+data class ProfileResponse(
+    val name: String,
+    val email: String,
+    val phone: String,
+    val salary: Int,
+    val yearsOfExperience: Int,
+) {
+    companion object {
+        /** Build from an approved application; its fulfillment fields are guaranteed set. */
+        fun from(app: OnboardingApplication) = ProfileResponse(
+            name = app.name!!,
+            email = app.email,
+            phone = app.phone!!,
+            salary = app.salary!!,
+            yearsOfExperience = app.yearsOfExperience!!,
+        )
+    }
+}
 
 /** Safe public view of an application — never includes the verification token. */
 data class ApplicationView(

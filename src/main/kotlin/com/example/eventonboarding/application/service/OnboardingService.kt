@@ -6,9 +6,11 @@ import com.example.eventonboarding.ports.outbound.CredentialNotifier
 import com.example.eventonboarding.ports.outbound.CreditScorer
 import com.example.eventonboarding.ports.outbound.DomainEventPublisher
 import com.example.eventonboarding.ports.outbound.PasswordGenerator
+import com.example.eventonboarding.ports.outbound.PasswordHasher
 import com.example.eventonboarding.ports.outbound.TokenGenerator
 import com.example.eventonboarding.ports.outbound.VerificationNotifier
 import com.example.eventonboarding.domain.ApplicationNotFoundException
+import com.example.eventonboarding.domain.InvalidCredentialsException
 import com.example.eventonboarding.domain.InvalidStepException
 import com.example.eventonboarding.domain.OnboardingApplication
 import com.example.eventonboarding.domain.OnboardingStep
@@ -28,6 +30,7 @@ class OnboardingService(
     private val notifier: VerificationNotifier,
     private val creditScorer: CreditScorer,
     private val passwordGenerator: PasswordGenerator,
+    private val passwordHasher: PasswordHasher,
     private val credentialNotifier: CredentialNotifier,
     private val domainEventPublisher: DomainEventPublisher,
 ) : OnboardingUseCase {
@@ -85,8 +88,14 @@ class OnboardingService(
             throw InvalidStepException("Fulfillment must be completed before scoring")
         }
         application.applyScore(creditScorer.score(application))
+        // Only approved applicants get an account: generate a password, store its hash,
+        // and deliver the plaintext out of band.
+        if (application.step == OnboardingStep.COMPLETED) {
+            val password = passwordGenerator.generate()
+            application.passwordHash = passwordHasher.hash(password)
+            credentialNotifier.send(application.email, password)
+        }
         val saved = repository.save(application)
-        credentialNotifier.send(saved.email, passwordGenerator.generate())
         domainEventPublisher.publish(
             CreditScoringCalculatedEvent(
                 applicationId = saved.id,
@@ -101,4 +110,17 @@ class OnboardingService(
 
     override fun get(id: String): OnboardingApplication =
         repository.findById(id) ?: throw ApplicationNotFoundException(id)
+
+    override fun login(email: String, password: String): OnboardingApplication {
+        val application = repository.findByEmail(email.trim())
+        val hash = application?.passwordHash
+        if (application == null ||
+            hash == null ||
+            application.step != OnboardingStep.COMPLETED ||
+            !passwordHasher.matches(password, hash)
+        ) {
+            throw InvalidCredentialsException()
+        }
+        return application
+    }
 }

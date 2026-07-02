@@ -1,6 +1,7 @@
 package com.example.eventonboarding.adapters.inbound.web
 
 import com.example.eventonboarding.ports.outbound.CreditScorer
+import com.example.eventonboarding.ports.outbound.PasswordGenerator
 import com.example.eventonboarding.ports.outbound.TokenGenerator
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Test
@@ -31,6 +32,10 @@ class OnboardingControllerTest {
         @Bean
         @Primary
         fun creditScorer(): CreditScorer = CreditScorer { 80 }
+
+        @Bean
+        @Primary
+        fun passwordGenerator(): PasswordGenerator = PasswordGenerator { "test-password-123" }
     }
 
     @Autowired
@@ -88,6 +93,60 @@ class OnboardingControllerTest {
             .andExpect(jsonPath("$.salary").value(120000))
             .andExpect(jsonPath("$.yearsOfExperience").value(7))
             .andExpect(jsonPath("$.score").value(80))
+    }
+
+    @Test
+    fun `approved applicant logs in and fetches their profile`() {
+        val id = completeApprovedApplication("login@example.com")
+
+        // Wrong password is rejected with 401.
+        mockMvc.perform(
+            post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""{"email":"login@example.com","password":"nope"}"""),
+        )
+            .andExpect(status().isUnauthorized)
+            .andExpect(jsonPath("$.error").exists())
+
+        // Correct credentials return the profile captured at fulfillment.
+        mockMvc.perform(
+            post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""{"email":"login@example.com","password":"test-password-123"}"""),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.name").value("Ada"))
+            .andExpect(jsonPath("$.email").value("login@example.com"))
+            .andExpect(jsonPath("$.phone").value("+1 555 0100"))
+            .andExpect(jsonPath("$.salary").value(120000))
+            .andExpect(jsonPath("$.yearsOfExperience").value(7))
+
+        assert(id.isNotBlank())
+    }
+
+    /** Drive an application all the way to approval; returns its id. */
+    private fun completeApprovedApplication(email: String): String {
+        val startResult = mockMvc.perform(
+            post("/api/onboarding/start")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""{"email":"$email"}"""),
+        ).andReturn()
+        val id = objectMapper.readTree(startResult.response.contentAsString)["applicationId"].asText()
+
+        mockMvc.perform(
+            post("/api/onboarding/$id/verify-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""{"token":"123456"}"""),
+        )
+        mockMvc.perform(
+            post("/api/onboarding/$id/fulfillment")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """{"name":"Ada","email":"$email","phone":"+1 555 0100","salary":120000,"yearsOfExperience":7}""",
+                ),
+        )
+        mockMvc.perform(post("/api/onboarding/$id/score"))
+        return id
     }
 
     @Test

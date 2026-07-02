@@ -145,3 +145,22 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   margin-top: 16px;
   font-weight: 600;
 }
+
+.profile {
+  margin: 16px 0 8px;
+}
+.profile > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.profile dt {
+  color: var(--muted);
+  font-weight: 600;
+}
+.profile dd {
+  margin: 0;
+  text-align: right;
+}

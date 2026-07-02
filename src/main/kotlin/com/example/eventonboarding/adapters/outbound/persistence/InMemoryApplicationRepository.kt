@@ -14,4 +14,7 @@ class InMemoryApplicationRepository : ApplicationRepository {
         application.also { store[it.id] = it }
 
     override fun findById(id: String): OnboardingApplication? = store[id]
+
+    override fun findByEmail(email: String): OnboardingApplication? =
+        store.values.firstOrNull { it.email == email }
 }
