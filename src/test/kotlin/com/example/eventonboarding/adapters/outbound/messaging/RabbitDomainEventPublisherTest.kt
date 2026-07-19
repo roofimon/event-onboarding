@@ -12,39 +12,44 @@ import java.net.ConnectException
 
 class RabbitDomainEventPublisherTest {
     private val rabbitTemplate = mock(RabbitTemplate::class.java)
-    private val publisher = RabbitDomainEventPublisher(
+    private val payload = byteArrayOf(1, 2, 3, 4)
+
+    private fun publisher(serializer: EventSerializer) = RabbitDomainEventPublisher(
         rabbitTemplate = rabbitTemplate,
+        eventSerializer = serializer,
         exchange = "event-onboarding.domain-events",
         creditScoringRoutingKey = "onboarding.credit-scoring.calculated",
     )
 
     @Test
-    fun `publishes credit scoring event to configured exchange and routing key`() {
-        val event = creditScoringCalculatedEvent()
-
-        publisher.publish(event)
+    fun `serializes the event and sends the bytes to the configured exchange and routing key`() {
+        publisher { subject, _ ->
+            assert(subject == "onboarding.credit-scoring.calculated")
+            payload
+        }.publish(creditScoringCalculatedEvent())
 
         verify(rabbitTemplate).convertAndSend(
             "event-onboarding.domain-events",
             "onboarding.credit-scoring.calculated",
-            event,
+            payload,
         )
     }
 
     @Test
     fun `does not fail caller when RabbitMQ publish fails`() {
-        val event = creditScoringCalculatedEvent()
         doThrow(AmqpConnectException(ConnectException("connection refused")))
             .`when`(rabbitTemplate)
-            .convertAndSend("event-onboarding.domain-events", "onboarding.credit-scoring.calculated", event)
+            .convertAndSend("event-onboarding.domain-events", "onboarding.credit-scoring.calculated", payload)
 
-        publisher.publish(event)
+        // Should not throw.
+        publisher { _, _ -> payload }.publish(creditScoringCalculatedEvent())
+    }
 
-        verify(rabbitTemplate).convertAndSend(
-            "event-onboarding.domain-events",
-            "onboarding.credit-scoring.calculated",
-            event,
-        )
+    @Test
+    fun `does not fail caller when serialization fails`() {
+        // A registry outage surfaces as a RuntimeException from the serializer.
+        publisher { _, _ -> throw RuntimeException("registry unavailable") }
+            .publish(creditScoringCalculatedEvent())
     }
 
     private fun creditScoringCalculatedEvent() = CreditScoringCalculatedEvent(

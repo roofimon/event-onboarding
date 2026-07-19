@@ -4,14 +4,11 @@ import com.example.eventonboarding.domain.event.CreditScoringCalculatedEvent
 import com.example.eventonboarding.domain.event.DomainEvent
 import com.example.eventonboarding.ports.outbound.DomainEventPublisher
 import org.slf4j.LoggerFactory
-import org.springframework.amqp.AmqpException
 import org.springframework.amqp.core.Binding
 import org.springframework.amqp.core.BindingBuilder
 import org.springframework.amqp.core.Queue
 import org.springframework.amqp.core.TopicExchange
 import org.springframework.amqp.rabbit.core.RabbitTemplate
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter
-import org.springframework.amqp.support.converter.MessageConverter
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -20,6 +17,7 @@ import org.springframework.stereotype.Component
 @Component
 class RabbitDomainEventPublisher(
     private val rabbitTemplate: RabbitTemplate,
+    private val eventSerializer: EventSerializer,
     @param:Value("\${onboarding.events.exchange}") private val exchange: String,
     @param:Value("\${onboarding.events.credit-scoring.routing-key}") private val creditScoringRoutingKey: String,
 ) : DomainEventPublisher {
@@ -28,9 +26,12 @@ class RabbitDomainEventPublisher(
     override fun publish(event: DomainEvent) {
         val routingKey = routingKeyFor(event)
         try {
-            rabbitTemplate.convertAndSend(exchange, routingKey, event)
-        } catch (ex: AmqpException) {
-            logger.warn("Failed to publish domain event {} to RabbitMQ", event::class.simpleName, ex)
+            // Serialize to Avro binary (schema in the registry), then send the raw bytes.
+            val payload = eventSerializer.serialize(routingKey, event)
+            rabbitTemplate.convertAndSend(exchange, routingKey, payload)
+        } catch (ex: RuntimeException) {
+            // Fire-and-forget: a broker or registry outage must not break onboarding.
+            logger.warn("Failed to publish domain event {}", event::class.simpleName, ex)
         }
     }
 
@@ -41,9 +42,6 @@ class RabbitDomainEventPublisher(
 
 @Configuration
 class RabbitDomainEventConfiguration {
-    @Bean
-    fun rabbitJsonMessageConverter(): MessageConverter = Jackson2JsonMessageConverter()
-
     @Bean
     fun onboardingEventsExchange(
         @Value("\${onboarding.events.exchange}") exchange: String,

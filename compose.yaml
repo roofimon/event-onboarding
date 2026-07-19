@@ -16,5 +16,12 @@ services:
       timeout: 5s
       retries: 5
 
+  apicurio-registry:
+    image: apicurio/apicurio-registry-mem:2.5.11.Final
+    container_name: event-onboarding-apicurio
+    ports:
+      # Host 8081 -> container 8080 (the Spring app already uses 8080).
+      - "8081:8080"
+
 volumes:
   rabbitmq-data:

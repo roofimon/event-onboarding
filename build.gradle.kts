@@ -25,8 +25,13 @@ dependencies {
     implementation("org.springframework.security:spring-security-crypto")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.apache.avro:avro:1.11.3")
+    implementation("io.apicurio:apicurio-registry-serdes-avro-serde:2.5.11.Final")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.testcontainers:testcontainers")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:rabbitmq")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -38,4 +43,9 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    // Forward the caller's Docker env to the forked test JVM so Testcontainers
+    // (used by the Apicurio+RabbitMQ round-trip test) can find the Docker socket.
+    listOf("DOCKER_HOST", "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH", "DOCKER_API_VERSION", "TESTCONTAINERS_RYUK_DISABLED").forEach { key ->
+        System.getenv(key)?.let { environment(key, it) }
+    }
 }

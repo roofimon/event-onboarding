@@ -1,0 +1,18 @@
+{
+  "type": "record",
+  "name": "CreditScoringCalculated",
+  "namespace": "com.example.eventonboarding.events.avro",
+  "doc": "Emitted when an onboarding application has been credit-scored.",
+  "fields": [
+    { "name": "applicationId", "type": "string" },
+    { "name": "email", "type": "string" },
+    { "name": "score", "type": "int" },
+    { "name": "approved", "type": "boolean" },
+    { "name": "step", "type": "string", "doc": "Terminal onboarding step: COMPLETED or DECLINED." },
+    {
+      "name": "occurredAt",
+      "type": { "type": "long", "logicalType": "timestamp-millis" },
+      "doc": "Event time as epoch milliseconds (UTC)."
+    }
+  ]
+}
