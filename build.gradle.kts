@@ -1,67 +1,52 @@
+import org.gradle.api.tasks.testing.Test
+import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
+import org.gradle.testing.jacoco.tasks.JacocoReport
+
 plugins {
-    kotlin("jvm") version "2.2.0"
-    kotlin("plugin.spring") version "2.2.0"
-    id("org.springframework.boot") version "3.5.3"
-    id("io.spring.dependency-management") version "1.1.7"
+    base
+    kotlin("jvm") version "2.2.0" apply false
+    kotlin("plugin.spring") version "2.2.0" apply false
+    id("org.springframework.boot") version "3.5.3" apply false
+    id("io.spring.dependency-management") version "1.1.7" apply false
     jacoco
 }
 
-group = "com.example"
-version = "0.0.1-SNAPSHOT"
+allprojects {
+    group = "com.example"
+    version = "0.0.1-SNAPSHOT"
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+    repositories {
+        mavenCentral()
     }
 }
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-amqp")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.security:spring-security-crypto")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.apache.avro:avro:1.11.3")
-    implementation("io.apicurio:apicurio-registry-serdes-avro-serde:2.5.11.Final")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("org.testcontainers:testcontainers")
-    testImplementation("org.testcontainers:junit-jupiter")
-    testImplementation("org.testcontainers:rabbitmq")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
+subprojects {
+    tasks.withType<Test>().configureEach {
+        useJUnitPlatform()
+        listOf("DOCKER_HOST", "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH", "DOCKER_API_VERSION", "TESTCONTAINERS_RYUK_DISABLED").forEach { key ->
+            System.getenv(key)?.let { environment(key, it) }
+        }
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-    finalizedBy(tasks.jacocoTestReport)
-    // Forward the caller's Docker env to the forked test JVM so Testcontainers
-    // (used by the Apicurio+RabbitMQ round-trip test) can find the Docker socket.
-    listOf("DOCKER_HOST", "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH", "DOCKER_API_VERSION", "TESTCONTAINERS_RYUK_DISABLED").forEach { key ->
-        System.getenv(key)?.let { environment(key, it) }
-    }
-}
+val allTests = subprojects.map { "${it.path}:test" }
 
-tasks.jacocoTestReport {
-    dependsOn(tasks.test)
+tasks.register<JacocoReport>("jacocoRootReport") {
+    dependsOn(allTests)
+    executionData.from(fileTree(rootDir) { include("**/build/jacoco/test.exec") })
+    sourceDirectories.from(subprojects.map { it.file("src/main/kotlin") })
+    classDirectories.from(subprojects.map { it.layout.buildDirectory.dir("classes/kotlin/main") })
     reports {
         xml.required = true
         html.required = true
     }
 }
 
-tasks.jacocoTestCoverageVerification {
-    dependsOn(tasks.jacocoTestReport)
+tasks.register<JacocoCoverageVerification>("jacocoRootCoverageVerification") {
+    dependsOn("jacocoRootReport")
+    executionData.from(fileTree(rootDir) { include("**/build/jacoco/test.exec") })
+    sourceDirectories.from(subprojects.map { it.file("src/main/kotlin") })
+    classDirectories.from(subprojects.map { it.layout.buildDirectory.dir("classes/kotlin/main") })
     violationRules {
         rule {
             limit {
@@ -73,6 +58,6 @@ tasks.jacocoTestCoverageVerification {
     }
 }
 
-tasks.check {
-    dependsOn(tasks.jacocoTestCoverageVerification)
+tasks.named("check") {
+    dependsOn("jacocoRootCoverageVerification")
 }

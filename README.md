@@ -16,43 +16,36 @@ State lives in memory keyed by an `applicationId` (a `ConcurrentHashMap`), so it
 is reset on restart. The verification token and generated password are **never**
 returned over the API — they only appear in the server console.
 
-## Architecture (Ports & Adapters / Hexagonal)
+## Architecture (Modular Monolith + Ports & Adapters)
 
-The core is framework-free and depends only on ports; Spring lives at the edges.
+The backend is one deployable Spring Boot application composed from Gradle modules.
+Each onboarding step owns its use case, HTTP adapter, DTOs, and required outbound
+ports; the framework-free services depend only on module APIs and the shared kernel.
 
 ```
-domain/                         pure entities & rules (OnboardingApplication, OnboardingStep,
-                                APPROVAL_THRESHOLD, exceptions) — no Spring
-application/
-  service/                      OnboardingService (implements the use case via ports)
-ports/
-  inbound/                      OnboardingUseCase           ← driving port
-  outbound/                     ApplicationRepository, TokenGenerator,
-                                VerificationNotifier, CreditScorer,
-                                PasswordGenerator, CredentialNotifier   ← driven ports
-adapters/
-  inbound/web/                  OnboardingController, ExceptionHandler, DTOs, CORS
-  outbound/persistence/         InMemoryApplicationRepository
-  outbound/token/               RandomTokenGenerator, RandomPasswordGenerator
-  outbound/notification/        ConsoleVerificationNotifier, ConsoleCredentialNotifier
-                                (the "print to console" adapters)
-  outbound/scoring/             RandomCreditScorer
-config/                         BeanConfiguration — composition root wiring the service
+shared-kernel/                  application aggregate, workflow states, exceptions,
+                                shared repository contract
+onboarding-email/               step 1: create/query application and issue token
+onboarding-token-verification/  step 2: verify token
+onboarding-fulfillment/         step 3: capture applicant details
+onboarding-scoring/             step 4: score, decide, provision account, publish event
+account/                        account provisioning, login, and profile updates
+infrastructure/                 persistence, generators, notifiers, BCrypt, scoring,
+                                RabbitMQ and Avro adapters
+application/                    Spring Boot composition root, global web/E2E configuration
 ```
 
-The controller depends on the `OnboardingUseCase` port, never on the concrete
-service. The service depends only on outbound ports, so the in-memory store,
-random token/password/score and console delivery are all swappable without touching the
-core (e.g. drop in a JPA repository or an email notifier by adding one adapter).
-Tests exercise the service with plain port doubles and pin the web flow by
-overriding the `TokenGenerator`/`CreditScorer` beans.
+Business modules depend on `shared-kernel`; scoring additionally calls the public
+account-provisioning API. `infrastructure` implements outbound ports, and only
+`application` assembles every module into an executable. Tests exercise each module
+with plain port doubles and pin the integrated web flow by overriding adapter beans.
 
 ## Backend (port 8080)
 
 ```bash
 docker compose up -d rabbitmq
 ./gradlew test       # run unit + MockMvc tests
-./gradlew bootRun    # start the API on http://localhost:8080
+./gradlew :application:bootRun  # start the API on http://localhost:8080
 ```
 
 RabbitMQ is available on `localhost:5672`; the management UI is available at
