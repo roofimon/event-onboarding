@@ -1,5 +1,6 @@
 package com.example.eventonboarding.account
 
+import com.example.eventonboarding.domain.event.DomainEventPublisher
 import com.example.eventonboarding.ports.outbound.ApplicationRepository
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -12,5 +13,7 @@ class AccountConfiguration {
         passwordGenerator: PasswordGenerator,
         passwordHasher: PasswordHasher,
         credentialNotifier: CredentialNotifier,
-    ): AccountService = AccountService(repository, passwordGenerator, passwordHasher, credentialNotifier)
+        domainEventPublisher: DomainEventPublisher,
+    ): AccountService =
+        AccountService(repository, passwordGenerator, passwordHasher, credentialNotifier, domainEventPublisher)
 }

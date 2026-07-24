@@ -83,6 +83,8 @@ class CreditScoringEventRegistryRoundTripIT {
                 eventSerializer = AvroEventSerializer(registryUrl),
                 exchange = exchange,
                 creditScoringRoutingKey = routingKey,
+                accountUpdatedRoutingKey = "account.information.updated",
+                accountDeletedRoutingKey = "account.information.deleted",
             )
 
             val event = CreditScoringCalculatedEvent(

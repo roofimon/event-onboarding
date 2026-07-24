@@ -1,5 +1,7 @@
 package com.example.eventonboarding.infrastructure.messaging
 
+import com.example.eventonboarding.account.AccountInformationDeletedEvent
+import com.example.eventonboarding.account.AccountInformationUpdatedEvent
 import com.example.eventonboarding.domain.OnboardingStep
 import com.example.eventonboarding.scoring.CreditScoringCalculatedEvent
 import org.junit.jupiter.api.Test
@@ -19,6 +21,8 @@ class RabbitDomainEventPublisherTest {
         eventSerializer = serializer,
         exchange = "event-onboarding.domain-events",
         creditScoringRoutingKey = "onboarding.credit-scoring.calculated",
+        accountUpdatedRoutingKey = "account.information.updated",
+        accountDeletedRoutingKey = "account.information.deleted",
     )
 
     @Test
@@ -50,6 +54,36 @@ class RabbitDomainEventPublisherTest {
         // A registry outage surfaces as a RuntimeException from the serializer.
         publisher { _, _ -> throw RuntimeException("registry unavailable") }
             .publish(creditScoringCalculatedEvent())
+    }
+
+    @Test
+    fun `routes account update events`() {
+        publisher { subject, _ ->
+            assert(subject == "account.information.updated")
+            payload
+        }.publish(
+            AccountInformationUpdatedEvent("app-1", "user@example.com", "Ada", "+15550100", 150000, 9),
+        )
+
+        verify(rabbitTemplate).convertAndSend(
+            "event-onboarding.domain-events",
+            "account.information.updated",
+            payload,
+        )
+    }
+
+    @Test
+    fun `routes account deletion events`() {
+        publisher { subject, _ ->
+            assert(subject == "account.information.deleted")
+            payload
+        }.publish(AccountInformationDeletedEvent("app-1", "user@example.com"))
+
+        verify(rabbitTemplate).convertAndSend(
+            "event-onboarding.domain-events",
+            "account.information.deleted",
+            payload,
+        )
     }
 
     private fun creditScoringCalculatedEvent() = CreditScoringCalculatedEvent(

@@ -1,8 +1,10 @@
 package com.example.eventonboarding.infrastructure.messaging
 
 import com.example.eventonboarding.scoring.CreditScoringCalculatedEvent
-import com.example.eventonboarding.scoring.DomainEvent
-import com.example.eventonboarding.scoring.DomainEventPublisher
+import com.example.eventonboarding.account.AccountInformationDeletedEvent
+import com.example.eventonboarding.account.AccountInformationUpdatedEvent
+import com.example.eventonboarding.domain.event.DomainEvent
+import com.example.eventonboarding.domain.event.DomainEventPublisher
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.core.Binding
 import org.springframework.amqp.core.BindingBuilder
@@ -20,6 +22,8 @@ class RabbitDomainEventPublisher(
     private val eventSerializer: EventSerializer,
     @param:Value("\${onboarding.events.exchange}") private val exchange: String,
     @param:Value("\${onboarding.events.credit-scoring.routing-key}") private val creditScoringRoutingKey: String,
+    @param:Value("\${onboarding.events.account-updated.routing-key}") private val accountUpdatedRoutingKey: String,
+    @param:Value("\${onboarding.events.account-deleted.routing-key}") private val accountDeletedRoutingKey: String,
 ) : DomainEventPublisher {
     private val logger = LoggerFactory.getLogger(RabbitDomainEventPublisher::class.java)
 
@@ -37,6 +41,9 @@ class RabbitDomainEventPublisher(
 
     private fun routingKeyFor(event: DomainEvent): String = when (event) {
         is CreditScoringCalculatedEvent -> creditScoringRoutingKey
+        is AccountInformationUpdatedEvent -> accountUpdatedRoutingKey
+        is AccountInformationDeletedEvent -> accountDeletedRoutingKey
+        else -> error("Unsupported domain event: ${event::class.qualifiedName}")
     }
 }
 
@@ -61,4 +68,28 @@ class RabbitDomainEventConfiguration {
         .bind(creditScoringCalculatedQueue)
         .to(onboardingEventsExchange)
         .with(routingKey)
+
+    @Bean
+    fun accountInformationUpdatedQueue(
+        @Value("\${onboarding.events.account-updated.queue}") queue: String,
+    ): Queue = Queue(queue, true)
+
+    @Bean
+    fun accountInformationUpdatedBinding(
+        onboardingEventsExchange: TopicExchange,
+        accountInformationUpdatedQueue: Queue,
+        @Value("\${onboarding.events.account-updated.routing-key}") routingKey: String,
+    ): Binding = BindingBuilder.bind(accountInformationUpdatedQueue).to(onboardingEventsExchange).with(routingKey)
+
+    @Bean
+    fun accountInformationDeletedQueue(
+        @Value("\${onboarding.events.account-deleted.queue}") queue: String,
+    ): Queue = Queue(queue, true)
+
+    @Bean
+    fun accountInformationDeletedBinding(
+        onboardingEventsExchange: TopicExchange,
+        accountInformationDeletedQueue: Queue,
+        @Value("\${onboarding.events.account-deleted.routing-key}") routingKey: String,
+    ): Binding = BindingBuilder.bind(accountInformationDeletedQueue).to(onboardingEventsExchange).with(routingKey)
 }

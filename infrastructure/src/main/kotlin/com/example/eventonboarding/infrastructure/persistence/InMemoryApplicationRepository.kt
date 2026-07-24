@@ -17,4 +17,6 @@ class InMemoryApplicationRepository : ApplicationRepository {
 
     override fun findByEmail(email: String): OnboardingApplication? =
         store.values.firstOrNull { it.email == email }
+
+    override fun deleteById(id: String): Boolean = store.remove(id) != null
 }

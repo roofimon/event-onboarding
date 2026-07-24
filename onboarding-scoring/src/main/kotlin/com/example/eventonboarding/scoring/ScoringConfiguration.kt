@@ -1,6 +1,7 @@
 package com.example.eventonboarding.scoring
 
 import com.example.eventonboarding.account.AccountProvisioning
+import com.example.eventonboarding.domain.event.DomainEventPublisher
 import com.example.eventonboarding.ports.outbound.ApplicationRepository
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

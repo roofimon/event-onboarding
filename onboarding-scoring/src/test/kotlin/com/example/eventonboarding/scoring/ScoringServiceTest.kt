@@ -1,5 +1,7 @@
 package com.example.eventonboarding.scoring
 
+import com.example.eventonboarding.domain.event.DomainEvent
+import com.example.eventonboarding.domain.event.DomainEventPublisher
 import com.example.eventonboarding.account.AccountProvisioning
 import com.example.eventonboarding.domain.ApplicationNotFoundException
 import com.example.eventonboarding.domain.InvalidStepException

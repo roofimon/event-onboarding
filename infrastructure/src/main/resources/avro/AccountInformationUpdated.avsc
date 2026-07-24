@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "AccountInformationUpdated",
+  "namespace": "com.example.eventonboarding.avro",
+  "fields": [
+    {"name": "applicationId", "type": "string"},
+    {"name": "email", "type": "string"},
+    {"name": "name", "type": "string"},
+    {"name": "phone", "type": "string"},
+    {"name": "salary", "type": "int"},
+    {"name": "yearsOfExperience", "type": "int"},
+    {"name": "occurredAt", "type": {"type": "long", "logicalType": "timestamp-millis"}}
+  ]
+}

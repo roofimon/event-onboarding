@@ -7,4 +7,5 @@ interface ApplicationRepository {
     fun save(application: OnboardingApplication): OnboardingApplication
     fun findById(id: String): OnboardingApplication?
     fun findByEmail(email: String): OnboardingApplication?
+    fun deleteById(id: String): Boolean = false
 }

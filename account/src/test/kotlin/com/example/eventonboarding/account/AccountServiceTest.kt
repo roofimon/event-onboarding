@@ -3,6 +3,8 @@ package com.example.eventonboarding.account
 import com.example.eventonboarding.domain.InvalidCredentialsException
 import com.example.eventonboarding.domain.OnboardingApplication
 import com.example.eventonboarding.domain.OnboardingStep
+import com.example.eventonboarding.domain.event.DomainEvent
+import com.example.eventonboarding.domain.event.DomainEventPublisher
 import com.example.eventonboarding.ports.outbound.ApplicationRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,9 +15,10 @@ class AccountServiceTest {
     private val application = OnboardingApplication("app-1", "user@example.com", "token")
     private val repository = SingleRepository(application)
     private var delivered: Pair<String, String>? = null
+    private val events = mutableListOf<DomainEvent>()
     private val service = AccountService(repository, { "generated-password" }, TestHasher(), { user, password ->
         delivered = user to password
-    })
+    }, DomainEventPublisher { events += it })
 
     @Test
     fun `provision hashes and delivers credentials`() {
@@ -52,6 +55,19 @@ class AccountServiceTest {
         assertEquals("+15550100", result.phone)
         assertEquals(80, result.score)
         assertEquals(OnboardingStep.COMPLETED, result.step)
+        assertEquals(1, events.size)
+        assertEquals("Ada", (events.single() as AccountInformationUpdatedEvent).name)
+    }
+
+    @Test
+    fun `profile deletion reauthenticates removes account and publishes event`() {
+        application.step = OnboardingStep.COMPLETED
+        application.passwordHash = "hashed:secret"
+
+        service.deleteProfile("user@example.com", "secret")
+
+        assertNull(repository.findById(application.id))
+        assertEquals(application.id, (events.single() as AccountInformationDeletedEvent).applicationId)
     }
 }
 
@@ -60,8 +76,10 @@ private class TestHasher : PasswordHasher {
     override fun matches(raw: String, hash: String) = hash == "hashed:$raw"
 }
 
-private class SingleRepository(private val application: OnboardingApplication) : ApplicationRepository {
-    override fun save(application: OnboardingApplication) = application
-    override fun findById(id: String) = application.takeIf { it.id == id }
-    override fun findByEmail(email: String) = application.takeIf { it.email == email }
+private class SingleRepository(private var application: OnboardingApplication?) : ApplicationRepository {
+    override fun save(application: OnboardingApplication) = application.also { this.application = it }
+    override fun findById(id: String) = application?.takeIf { it.id == id }
+    override fun findByEmail(email: String) = application?.takeIf { it.email == email }
+    override fun deleteById(id: String): Boolean =
+        (application?.id == id).also { if (it) application = null }
 }

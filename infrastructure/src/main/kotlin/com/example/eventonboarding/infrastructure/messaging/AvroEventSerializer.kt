@@ -1,7 +1,9 @@
 package com.example.eventonboarding.infrastructure.messaging
 
 import com.example.eventonboarding.scoring.CreditScoringCalculatedEvent
-import com.example.eventonboarding.scoring.DomainEvent
+import com.example.eventonboarding.account.AccountInformationDeletedEvent
+import com.example.eventonboarding.account.AccountInformationUpdatedEvent
+import com.example.eventonboarding.domain.event.DomainEvent
 import io.apicurio.registry.serde.SerdeConfig
 import io.apicurio.registry.serde.avro.AvroKafkaSerializer
 import org.apache.avro.generic.GenericRecord
@@ -35,6 +37,9 @@ class AvroEventSerializer(
     override fun serialize(subject: String, event: DomainEvent): ByteArray {
         val record = when (event) {
             is CreditScoringCalculatedEvent -> CreditScoringAvroMapper.toRecord(event)
+            is AccountInformationUpdatedEvent -> AccountInformationAvroMapper.toUpdatedRecord(event)
+            is AccountInformationDeletedEvent -> AccountInformationAvroMapper.toDeletedRecord(event)
+            else -> error("Unsupported domain event: ${event::class.qualifiedName}")
         }
         return serializer.serialize(subject, record)
     }

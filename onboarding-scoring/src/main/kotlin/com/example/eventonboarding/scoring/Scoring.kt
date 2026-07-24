@@ -5,6 +5,8 @@ import com.example.eventonboarding.domain.ApplicationNotFoundException
 import com.example.eventonboarding.domain.InvalidStepException
 import com.example.eventonboarding.domain.OnboardingApplication
 import com.example.eventonboarding.domain.OnboardingStep
+import com.example.eventonboarding.domain.event.DomainEvent
+import com.example.eventonboarding.domain.event.DomainEventPublisher
 import com.example.eventonboarding.ports.outbound.ApplicationRepository
 import java.time.Instant
 
@@ -14,14 +16,6 @@ fun interface ScoringUseCase {
 
 fun interface CreditScorer {
     fun score(application: OnboardingApplication): Int
-}
-
-fun interface DomainEventPublisher {
-    fun publish(event: DomainEvent)
-}
-
-sealed interface DomainEvent {
-    val occurredAt: Instant
 }
 
 data class CreditScoringCalculatedEvent(

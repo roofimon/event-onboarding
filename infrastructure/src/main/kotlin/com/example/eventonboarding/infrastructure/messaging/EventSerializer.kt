@@ -1,6 +1,6 @@
 package com.example.eventonboarding.infrastructure.messaging
 
-import com.example.eventonboarding.scoring.DomainEvent
+import com.example.eventonboarding.domain.event.DomainEvent
 
 /**
  * Serializes a domain event to the bytes placed on the wire. Kept as an interface so

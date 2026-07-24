@@ -3,7 +3,10 @@ package com.example.eventonboarding.account
 import com.example.eventonboarding.domain.InvalidCredentialsException
 import com.example.eventonboarding.domain.OnboardingApplication
 import com.example.eventonboarding.domain.OnboardingStep
+import com.example.eventonboarding.domain.event.DomainEvent
+import com.example.eventonboarding.domain.event.DomainEventPublisher
 import com.example.eventonboarding.ports.outbound.ApplicationRepository
+import java.time.Instant
 
 interface AccountUseCase {
     fun login(email: String, password: String): OnboardingApplication
@@ -15,7 +18,24 @@ interface AccountUseCase {
         salary: Int,
         yearsOfExperience: Int,
     ): OnboardingApplication
+    fun deleteProfile(email: String, password: String)
 }
+
+data class AccountInformationUpdatedEvent(
+    val applicationId: String,
+    val email: String,
+    val name: String,
+    val phone: String,
+    val salary: Int,
+    val yearsOfExperience: Int,
+    override val occurredAt: Instant = Instant.now(),
+) : DomainEvent
+
+data class AccountInformationDeletedEvent(
+    val applicationId: String,
+    val email: String,
+    override val occurredAt: Instant = Instant.now(),
+) : DomainEvent
 
 fun interface AccountProvisioning {
     fun provision(application: OnboardingApplication)
@@ -39,6 +59,7 @@ class AccountService(
     private val passwordGenerator: PasswordGenerator,
     private val passwordHasher: PasswordHasher,
     private val credentialNotifier: CredentialNotifier,
+    private val domainEventPublisher: DomainEventPublisher,
 ) : AccountUseCase, AccountProvisioning {
     override fun provision(application: OnboardingApplication) {
         val password = passwordGenerator.generate()
@@ -70,6 +91,24 @@ class AccountService(
         application.phone = phone.trim()
         application.salary = salary
         application.yearsOfExperience = yearsOfExperience
-        return repository.save(application)
+        val saved = repository.save(application)
+        domainEventPublisher.publish(
+            AccountInformationUpdatedEvent(
+                saved.id,
+                saved.email,
+                saved.name!!,
+                saved.phone!!,
+                saved.salary!!,
+                saved.yearsOfExperience!!,
+            ),
+        )
+        return saved
+    }
+
+    override fun deleteProfile(email: String, password: String) {
+        val application = login(email, password)
+        if (repository.deleteById(application.id)) {
+            domainEventPublisher.publish(AccountInformationDeletedEvent(application.id, application.email))
+        }
     }
 }

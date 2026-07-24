@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,6 +32,11 @@ class AccountController(private val account: AccountUseCase) {
                 request.yearsOfExperience,
             ),
         )
+
+    @DeleteMapping("/profile")
+    fun deleteProfile(@Valid @RequestBody request: DeleteProfileRequest) {
+        account.deleteProfile(request.email, request.password)
+    }
 }
 
 data class LoginRequest(
@@ -47,6 +53,11 @@ data class UpdateProfileRequest(
     val phone: String,
     @field:Min(0) val salary: Int,
     @field:Min(0) val yearsOfExperience: Int,
+)
+
+data class DeleteProfileRequest(
+    @field:NotBlank @field:Email val email: String,
+    @field:NotBlank val password: String,
 )
 
 data class ProfileResponse(
