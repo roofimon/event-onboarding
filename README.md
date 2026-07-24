@@ -23,16 +23,16 @@ Each onboarding step owns its use case, HTTP adapter, DTOs, and required outboun
 ports; the framework-free services depend only on module APIs and the shared kernel.
 
 ```
-shared-kernel/                  application aggregate, workflow states, exceptions,
+module-shared-kernel/           application aggregate, workflow states, exceptions,
                                 shared repository contract
-onboarding-email/               step 1: create/query application and issue token
-onboarding-token-verification/  step 2: verify token
-onboarding-fulfillment/         step 3: capture applicant details
-onboarding-scoring/             step 4: score, decide, provision account, publish event
-account/                        account provisioning, login, and profile updates
-infrastructure/                 persistence, generators, notifiers, BCrypt, scoring,
+module-onboarding-email/        step 1: create/query application and issue token
+module-onboarding-token-verification/ step 2: verify token
+module-onboarding-fulfillment/  step 3: capture applicant details
+module-onboarding-scoring/      step 4: score, decide, provision account, publish event
+module-account/                 account provisioning, login, and profile updates
+module-infrastructure/          persistence, generators, notifiers, BCrypt, scoring,
                                 RabbitMQ and Avro adapters
-application/                    Spring Boot composition root, global web/E2E configuration
+module-application/             Spring Boot composition root, global web/E2E configuration
 ```
 
 Business modules depend on `shared-kernel`; scoring additionally calls the public
@@ -45,7 +45,7 @@ with plain port doubles and pin the integrated web flow by overriding adapter be
 ```bash
 docker compose up -d rabbitmq
 ./gradlew test       # run unit + MockMvc tests
-./gradlew :application:bootRun  # start the API on http://localhost:8080
+./gradlew :module-application:bootRun  # start the API on http://localhost:8080
 ```
 
 RabbitMQ is available on `localhost:5672`; the management UI is available at

@@ -2,11 +2,11 @@ plugins { kotlin("jvm"); kotlin("plugin.spring"); jacoco }
 java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
 kotlin { compilerOptions { freeCompilerArgs.addAll("-Xjsr305=strict") } }
 dependencies {
-    implementation(project(":shared-kernel"))
-    implementation(project(":onboarding-email"))
-    implementation(project(":onboarding-token-verification"))
-    implementation(project(":account"))
-    implementation(project(":onboarding-scoring"))
+    implementation(project(":module-shared-kernel"))
+    implementation(project(":module-onboarding-email"))
+    implementation(project(":module-onboarding-token-verification"))
+    implementation(project(":module-account"))
+    implementation(project(":module-onboarding-scoring"))
     implementation("org.springframework.boot:spring-boot-starter-amqp:3.5.3")
     implementation("org.springframework.security:spring-security-crypto:6.5.1")
     implementation("org.apache.avro:avro:1.11.3")

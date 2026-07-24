@@ -18,7 +18,7 @@ Interfaces:
 ## 2. Start the backend
 
 ```bash
-./gradlew :application:bootRun
+./gradlew :module-application:bootRun
 ```
 
 The application connects to:
@@ -57,7 +57,7 @@ POST /api/onboarding/{applicationId}/score
 
 Open the registry UI or API and demonstrate that the schema has been
 auto-registered. The source schema is
-[`CreditScoringCalculated.avsc`](infrastructure/src/main/resources/avro/CreditScoringCalculated.avsc).
+[`CreditScoringCalculated.avsc`](module-infrastructure/src/main/resources/avro/CreditScoringCalculated.avsc).
 
 It defines:
 
@@ -122,10 +122,10 @@ Domain event
 
 Relevant files:
 
-- [`AvroEventSerializer.kt`](infrastructure/src/main/kotlin/com/example/eventonboarding/infrastructure/messaging/AvroEventSerializer.kt)
-- [`CreditScoringAvroMapper.kt`](infrastructure/src/main/kotlin/com/example/eventonboarding/infrastructure/messaging/CreditScoringAvroMapper.kt)
-- [`RabbitDomainEventPublisher.kt`](infrastructure/src/main/kotlin/com/example/eventonboarding/infrastructure/messaging/RabbitDomainEventPublisher.kt)
-- [`CreditScoringEventRegistryRoundTripIT.kt`](infrastructure/src/test/kotlin/com/example/eventonboarding/infrastructure/messaging/CreditScoringEventRegistryRoundTripIT.kt)
+- [`AvroEventSerializer.kt`](module-infrastructure/src/main/kotlin/com/example/eventonboarding/infrastructure/messaging/AvroEventSerializer.kt)
+- [`CreditScoringAvroMapper.kt`](module-infrastructure/src/main/kotlin/com/example/eventonboarding/infrastructure/messaging/CreditScoringAvroMapper.kt)
+- [`RabbitDomainEventPublisher.kt`](module-infrastructure/src/main/kotlin/com/example/eventonboarding/infrastructure/messaging/RabbitDomainEventPublisher.kt)
+- [`CreditScoringEventRegistryRoundTripIT.kt`](module-infrastructure/src/test/kotlin/com/example/eventonboarding/infrastructure/messaging/CreditScoringEventRegistryRoundTripIT.kt)
 
 ## Suggested presentation narrative
 

@@ -11,7 +11,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: "cd .. && ./gradlew :application:bootRun --args='--spring.profiles.active=e2e --server.address=127.0.0.1 --server.port=18080'",
+      command: "cd .. && ./gradlew :module-application:bootRun --args='--spring.profiles.active=e2e --server.address=127.0.0.1 --server.port=18080'",
       url: 'http://127.0.0.1:18080/api/e2e/health',
       reuseExistingServer: false,
       timeout: 120_000,

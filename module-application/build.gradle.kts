@@ -10,13 +10,13 @@ java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
 kotlin { compilerOptions { freeCompilerArgs.addAll("-Xjsr305=strict") } }
 
 dependencies {
-    implementation(project(":shared-kernel"))
-    implementation(project(":onboarding-email"))
-    implementation(project(":onboarding-token-verification"))
-    implementation(project(":onboarding-fulfillment"))
-    implementation(project(":account"))
-    implementation(project(":onboarding-scoring"))
-    implementation(project(":infrastructure"))
+    implementation(project(":module-shared-kernel"))
+    implementation(project(":module-onboarding-email"))
+    implementation(project(":module-onboarding-token-verification"))
+    implementation(project(":module-onboarding-fulfillment"))
+    implementation(project(":module-account"))
+    implementation(project(":module-onboarding-scoring"))
+    implementation(project(":module-infrastructure"))
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
