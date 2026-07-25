@@ -15,7 +15,7 @@ async function submit() {
   loading.value = true
   try {
     store.profile = await login(email.value, password.value)
-    router.push({ name: 'profile' })
+    await router.push({name: 'profile'})
   } catch (e) {
     error.value = errorMessage(e)
   } finally {

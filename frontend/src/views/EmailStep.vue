@@ -9,15 +9,22 @@ const email = ref(store.email)
 const loading = ref(false)
 const error = ref('')
 
-async function submit() {
+function saveStartedApplication(applicationId: string, submittedEmail: string): void {
+  store.reset()
+  store.applicationId = applicationId
+  store.email = submittedEmail
+}
+
+async function submit(): Promise<void> {
   error.value = ''
   loading.value = true
+
+  const submittedEmail = email.value
+
   try {
-    const res = await start(email.value)
-    store.reset()
-    store.applicationId = res.applicationId
-    store.email = email.value
-    router.push({ name: 'verify' })
+    const startResponse = await start(submittedEmail)
+    saveStartedApplication(startResponse.applicationId, submittedEmail)
+    await router.push({ name: 'verify' })
   } catch (e) {
     error.value = errorMessage(e)
   } finally {
