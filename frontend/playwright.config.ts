@@ -17,7 +17,7 @@ export default defineConfig({
       timeout: 120_000,
     },
     {
-      command: 'E2E_API_PROXY_TARGET=http://127.0.0.1:18080 npm run dev -- --host 127.0.0.1 --port 15173',
+      command: 'E2E_API_PROXY_TARGET=http://127.0.0.1:18080 bun run dev -- --host 127.0.0.1 --port 15173',
       url: 'http://127.0.0.1:15173',
       reuseExistingServer: false,
       timeout: 120_000,
