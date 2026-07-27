@@ -1,6 +1,7 @@
 import org.gradle.api.tasks.testing.Test
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 import org.gradle.testing.jacoco.tasks.JacocoReport
+import java.util.concurrent.CountDownLatch
 
 plugins {
     base
@@ -60,4 +61,41 @@ tasks.register<JacocoCoverageVerification>("jacocoRootCoverageVerification") {
 
 tasks.named("check") {
     dependsOn("jacocoRootCoverageVerification")
+}
+
+tasks.register("runDev") {
+    group = "application"
+    description = "Starts the backend (bootRun) and the frontend (vite) dev server together"
+    doLast {
+        val backend = ProcessBuilder("./gradlew", ":module-application:bootRun")
+            .directory(rootDir)
+            .inheritIO()
+            .start()
+
+        Thread.sleep(4000)
+
+        val frontend = ProcessBuilder("bun", "run", "dev")
+            .directory(file("frontend"))
+            .inheritIO()
+            .start()
+
+        Runtime.getRuntime().addShutdownHook(
+            Thread {
+                backend.destroyForcibly()
+                frontend.destroyForcibly()
+            }
+        )
+
+        val oneExited = CountDownLatch(1)
+        listOf(backend, frontend).forEach { process ->
+            Thread {
+                process.waitFor()
+                oneExited.countDown()
+            }.start()
+        }
+
+        oneExited.await()
+        backend.destroyForcibly()
+        frontend.destroyForcibly()
+    }
 }

@@ -4,12 +4,12 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "dev": "bun --bun vite",
+    "build": "vue-tsc --noEmit && bun --bun vite build",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
     "type-check": "vue-tsc --noEmit",
-    "preview": "vite preview"
+    "preview": "bun --bun vite preview"
   },
   "dependencies": {
     "axios": "^1.7.9",

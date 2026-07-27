@@ -34,7 +34,7 @@ Either use the Vue frontend:
 
 ```bash
 cd frontend
-npm run dev
+bun run dev
 ```
 
 Open <http://localhost:5173> and complete the wizard. The verification token

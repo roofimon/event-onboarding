@@ -77,11 +77,11 @@ Vue 3 + **TypeScript** + vue-router, built with Vite. Shared API types live in
 
 ```bash
 cd frontend
-npm install
-npm run dev          # http://localhost:5173
-npm run type-check   # vue-tsc --noEmit
-npm run build        # type-check + production build
-npm run e2e          # starts backend with the e2e profile + Vite, then runs Playwright headless
+bun install
+bun run dev          # http://localhost:5173
+bun run type-check   # vue-tsc --noEmit
+bun run build        # type-check + production build
+bun run e2e          # starts backend with the e2e profile + Vite, then runs Playwright headless
 ```
 
 The Vite dev server proxies `/api` to `http://localhost:8080`, so run the backend
