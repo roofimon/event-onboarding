@@ -8,6 +8,7 @@ plugins {
     kotlin("plugin.spring") version "2.2.0" apply false
     id("org.springframework.boot") version "3.5.3" apply false
     id("io.spring.dependency-management") version "1.1.7" apply false
+    id("org.sonarqube") version "7.3.1.8318"
     jacoco
 }
 
@@ -60,4 +61,27 @@ tasks.register<JacocoCoverageVerification>("jacocoRootCoverageVerification") {
 
 tasks.named("check") {
     dependsOn("jacocoRootCoverageVerification")
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "event-onboarding")
+        property("sonar.projectName", "Event Onboarding")
+        property(
+            "sonar.host.url",
+            providers.environmentVariable("SONAR_HOST_URL").orElse("http://localhost:9000").get(),
+        )
+        property(
+            "sonar.coverage.jacoco.aggregateXmlReportPaths",
+            layout.buildDirectory
+                .file("reports/jacoco/jacocoRootReport/jacocoRootReport.xml")
+                .get()
+                .asFile
+                .absolutePath,
+        )
+    }
+}
+
+tasks.named("sonar") {
+    dependsOn("jacocoRootReport")
 }
