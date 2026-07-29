@@ -1,4 +1,5 @@
 import org.gradle.api.tasks.testing.Test
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
@@ -44,6 +45,8 @@ tasks.register<JacocoReport>("jacocoRootReport") {
 }
 
 tasks.register<JacocoCoverageVerification>("jacocoRootCoverageVerification") {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Verifies aggregate test coverage across all backend modules."
     dependsOn("jacocoRootReport")
     executionData.from(fileTree(rootDir) { include("**/build/jacoco/test.exec") })
     sourceDirectories.from(subprojects.map { it.file("src/main/kotlin") })

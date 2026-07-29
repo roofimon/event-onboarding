@@ -6,7 +6,7 @@ import com.example.eventonboarding.domain.OnboardingApplication
 import com.example.eventonboarding.domain.OnboardingStep
 import com.example.eventonboarding.ports.outbound.ApplicationRepository
 
-interface FulfillmentUseCase {
+fun interface FulfillmentUseCase {
     fun fulfill(
         id: String,
         name: String,
