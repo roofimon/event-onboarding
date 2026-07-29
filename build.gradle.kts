@@ -4,11 +4,11 @@ import org.gradle.testing.jacoco.tasks.JacocoReport
 
 plugins {
     base
-    kotlin("jvm") version "2.2.0" apply false
-    kotlin("plugin.spring") version "2.2.0" apply false
-    id("org.springframework.boot") version "3.5.3" apply false
-    id("io.spring.dependency-management") version "1.1.7" apply false
-    id("org.sonarqube") version "7.3.1.8318"
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.spring) apply false
+    alias(libs.plugins.spring.boot) apply false
+    alias(libs.plugins.spring.dependency.management) apply false
+    alias(libs.plugins.sonarqube)
     jacoco
 }
 
