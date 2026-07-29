@@ -34,6 +34,8 @@ subprojects {
 val allTests = subprojects.map { "${it.path}:test" }
 
 tasks.register<JacocoReport>("jacocoRootReport") {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Generates aggregate test coverage reports for all backend modules."
     dependsOn(allTests)
     executionData.from(fileTree(rootDir) { include("**/build/jacoco/test.exec") })
     sourceDirectories.from(subprojects.map { it.file("src/main/kotlin") })
