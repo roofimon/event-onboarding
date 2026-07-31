@@ -4,7 +4,7 @@ kotlin { compilerOptions { freeCompilerArgs.addAll("-Xjsr305=strict") } }
 dependencies {
     implementation(project(":module-shared-kernel"))
     implementation(project(":module-account"))
-    implementation("org.springframework.boot:spring-boot-starter-web:3.5.3")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:3.5.3")
+    implementation(libs.spring.boot.starter.web)
+    testImplementation(libs.spring.boot.starter.test)
     testImplementation(kotlin("test"))
 }

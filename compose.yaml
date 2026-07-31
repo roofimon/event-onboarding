@@ -23,5 +23,32 @@ services:
       # Host 8081 -> container 8080 (the Spring app already uses 8080).
       - "8081:8080"
 
+  sonarqube:
+    image: sonarqube:26.6.0.123539-community
+    container_name: event-onboarding-sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      # Suitable for local evaluation; production instances must satisfy the
+      # documented Elasticsearch host requirements instead.
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-extensions:/opt/sonarqube/extensions
+      - sonarqube-logs:/opt/sonarqube/logs
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-proxy -qO- http://localhost:9000/api/system/status | grep -q '\"status\":\"UP\"'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
 volumes:
   rabbitmq-data:
+  sonarqube-data:
+  sonarqube-extensions:
+  sonarqube-logs:
