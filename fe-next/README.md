@@ -27,3 +27,25 @@ bun run type-check
 bun run lint
 bun run build
 ```
+
+## End-to-end tests
+
+Install dependencies and the Chromium browser once:
+
+```bash
+bun install
+bunx playwright install chromium
+```
+
+Run the Playwright suite:
+
+```bash
+bun run e2e
+```
+
+The Playwright configuration starts the backend with its `e2e` profile on port
+`18080` and the Next.js frontend on port `15174`. To see the browser:
+
+```bash
+bun run e2e:headed
+```

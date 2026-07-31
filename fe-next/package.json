@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start --port 5174",
     "lint": "eslint .",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "next": "latest",
@@ -19,6 +21,7 @@
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "@playwright/test": "^1.61.1",
     "eslint": "^9.0.0",
     "eslint-config-next": "latest",
     "typescript": "^6.0.0"
